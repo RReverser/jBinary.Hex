@@ -43,8 +43,12 @@ body {
 	cursor: pointer;
 }
 
-#binary .current {
+#binary .current, #binary .value:hover {
 	background: #6b9aba;
 	color: #fff;
 	border-radius: 3px;
+}
+
+#binary .value:hover {
+	background: #bfeeff;
 }
