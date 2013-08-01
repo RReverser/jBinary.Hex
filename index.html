@@ -128,7 +128,7 @@
 			viewModel.current(current);
 		},
 		clickCurrent: function (viewModel, event) {
-			if ('offset' in event.target.dataset) viewModel.current(event.target.dataset.offset);
+			if ('offset' in event.target.dataset) viewModel.current(Number(event.target.dataset.offset));
 		}
 	};
 
