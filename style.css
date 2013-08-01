@@ -1,0 +1,50 @@
+body {
+	margin: 0;
+}
+
+#toolbar {
+	position: fixed;
+	width: 100%;
+	height: 20pt;
+	background: #fff;
+	z-index: 1;
+	border-bottom: 1px solid #777;
+}
+
+#position {
+	float: right;
+}
+
+#binary {
+	font-family: Courier, monospace;
+	font-size: 13px;
+	line-height: 18px;
+	outline: none;
+	position: fixed;
+	top: 20pt;
+	bottom: 0;
+	width: 100%;
+	overflow: auto;
+}
+
+#binary span {
+	padding: 0 4px;
+}
+
+#binary .offset {
+	font-weight: bold;
+}
+
+#binary .offset:after {
+	content: ":";
+}
+
+#binary .value {
+	cursor: pointer;
+}
+
+#binary .current {
+	background: #6b9aba;
+	color: #fff;
+	border-radius: 3px;
+}

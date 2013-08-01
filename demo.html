@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Editor</title>
+	<link rel="stylesheet" type="text/css" href="style.css" />
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/2.3.0/knockout-min.js"></script>
+	<script src="https://rawgithub.com/jDataView/jDataView/master/src/jdataview.js"></script>
+	<script src="https://rawgithub.com/jDataView/jBinary/master/src/jbinary.js"></script>
+	<script>
+	ko.bindingHandlers.file = {
+		init: function (element, valueAccessor) {
+			valueAccessor = valueAccessor();
+
+			valueAccessor(element.files[0]);
+			element.addEventListener('change', function () {
+				valueAccessor(this.files[0]);
+			});
+		}
+	};
+
+	function toHex(number, length) {
+		var s = number.toString(16).toUpperCase();
+		while (s.length < length) {
+			s = '0' + s;
+		}
+		return s;
+	}
+
+	ko.bindingHandlers.binary = {
+		update: function (element, valueAccessor) {
+			valueAccessor = valueAccessor();
+
+			var binary = ko.unwrap(valueAccessor());
+
+			if (!binary) return;
+
+			element.innerHTML = '';
+			var data = binary.read('blob', 0);
+
+			for (var i = 0, length = data.length; i < length; i += 32) {
+				var tr = document.createElement('div');
+
+				var th = document.createElement('span');
+				th.className = 'offset';
+				th.textContent = toHex(i, 8);
+				tr.appendChild(th);
+
+				for (var offset = 0, maxOffset = Math.min(32, data.length - i); offset < maxOffset; offset++) {
+					var td = document.createElement('span');
+					td.className = 'value';
+					td.dataset.offset = i + offset;
+					td.textContent = toHex(data[i + offset], 2);
+					tr.appendChild(td);
+					if (offset === 15) {
+						tr.appendChild(document.createElement('span'));
+					}
+				}
+
+				element.appendChild(tr);
+			}
+			
+			element.focus();
+		}
+	}
+
+	function isElementInViewport(el) {
+		var rect = el.getBoundingClientRect();
+
+		return (
+			rect.top >= 0 &&
+			rect.left >= 0 &&
+			rect.bottom <= (window.innerHeight || document. documentElement.clientHeight) &&
+			rect.right <= (window.innerWidth || document. documentElement.clientWidth)
+		);
+	}
+
+	var viewModel = {
+		file: ko.observable(),
+		typeSet: ko.observable(),
+		binary: ko.observable(),
+		current: ko.observable(),
+		moveCurrent: function (viewModel, event) {
+			var current = viewModel.current(),
+				delta = 0;
+
+			// all browsers || Chrome
+			switch (event.key || event.keyIdentifier) {
+				case 'Up':
+					delta = -32;
+					break;
+
+				case 'Down':
+					delta = 32;
+					break;
+
+				case 'Left':
+					delta = -1;
+					break;
+
+				case 'Right':
+					delta = 1;
+					break;
+
+				case 'PageUp':
+					delta = -512;
+					break;
+
+				case 'PageDown':
+					delta = 512;
+					break;
+
+				default:
+					return true;
+			}
+
+			current += delta;
+			if (delta < 0) {
+				if (current < 0) {
+					current = 0;
+				}
+			} else {
+				var max = viewModel.binary().view.byteLength - 1;
+				if (current > max) {
+					current = max;
+				}
+			}
+
+			viewModel.current(current);
+		},
+		clickCurrent: function (viewModel, event) {
+			if ('offset' in event.target.dataset) viewModel.current(event.target.dataset.offset);
+		}
+	};
+
+	ko.computed(function () {
+		var file = viewModel.file(), typeSet = viewModel.typeSet();
+
+		if (!file) return;
+
+		jBinary.loadData(file, function (err, data) {
+			viewModel.binary(new jBinary(data, typeSet));
+			viewModel.current(0);
+		});
+	});
+
+	var oldCurrent;
+
+	viewModel.current.subscribe(function (value) {
+		oldCurrent = value;
+	}, this, 'beforeChange');
+
+	viewModel.current.subscribe(function (value) {
+		var currentElement = document.querySelector('#binary .current');
+		if (currentElement) {
+			currentElement.classList.remove('current');
+		}
+		currentElement = document.querySelector('#binary .value[data-offset="' + value + '"]');
+		currentElement.classList.add('current');
+		if (!isElementInViewport(currentElement)) {
+			currentElement.scrollIntoView(value > oldCurrent);
+		}
+	});
+
+	addEventListener('load', function () {
+		ko.applyBindings(viewModel);
+	});
+	</script>
+</head>
+<body>
+	<div id="toolbar">
+		<input type="file" id="file" data-bind="file: file" />
+		<div id="position" data-bind="if: current() !== undefined">
+			Position:
+			0x<span data-bind="text: toHex(current(), 8)"></span>
+			(<span data-bind="text: current"></span>)
+		</div>
+	</div>
+	<div id="binary" tabindex="1" data-bind="binary: binary, event: {keydown: moveCurrent, click: clickCurrent}"></div>
+</body>
+</html>
