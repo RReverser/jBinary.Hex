@@ -137,9 +137,8 @@
 	viewModel.items.offset = 0;
 	viewModel.scrolled = function(data, event) {
 		var elem = event.target;
-		console.log(elem.scrollTop, elem.scrollHeight, elem.offsetHeight);
-		if (elem.scrollTop > (elem.scrollHeight - elem.offsetHeight - 200)) {
-			viewModel.getItems(50);
+		if (elem.scrollTop > (elem.scrollHeight - elem.offsetHeight - 20 * 18)) {
+			viewModel.getItems(20);
 		}
 	};
 

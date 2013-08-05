@@ -37,14 +37,15 @@ body {
 
 #binary .value {
 	cursor: pointer;
+	border: 1px solid transparent;
+	border-radius: 3px;
 }
 
 #binary .current, #binary .value:hover {
 	background: #6b9aba;
 	color: #fff;
-	border-radius: 3px;
 }
 
 #binary .value:hover {
-	background: #bfeeff;
+	border-color: #bfeeff;
 }
