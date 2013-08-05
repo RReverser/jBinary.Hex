@@ -35,10 +35,6 @@ body {
 	font-weight: bold;
 }
 
-#binary .offset:after {
-	content: ":";
-}
-
 #binary .value {
 	cursor: pointer;
 }

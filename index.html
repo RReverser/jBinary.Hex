@@ -18,67 +18,12 @@
 		}
 	};
 
-	function toHex(number, length) {
-		var s = number.toString(16).toUpperCase();
-		while (s.length < length) {
-			s = '0' + s;
-		}
-		return s;
-	}
-
-	ko.bindingHandlers.binary = {
-		update: function (element, valueAccessor) {
-			valueAccessor = valueAccessor();
-
-			var binary = ko.unwrap(valueAccessor());
-
-			if (!binary) return;
-
-			element.innerHTML = '';
-			var data = binary.read('blob', 0);
-
-			for (var i = 0, length = data.length; i < length; i += 32) {
-				var tr = document.createElement('div');
-
-				var th = document.createElement('span');
-				th.className = 'offset';
-				th.textContent = toHex(i, 8);
-				tr.appendChild(th);
-
-				for (var offset = 0, maxOffset = Math.min(32, data.length - i); offset < maxOffset; offset++) {
-					var td = document.createElement('span');
-					td.className = 'value';
-					td.dataset.offset = i + offset;
-					td.textContent = toHex(data[i + offset], 2);
-					tr.appendChild(td);
-					if (offset === 15) {
-						tr.appendChild(document.createElement('span'));
-					}
-				}
-
-				element.appendChild(tr);
-			}
-			
-			element.focus();
-		}
-	}
-
-	function isElementInViewport(el) {
-		var rect = el.getBoundingClientRect();
-
-		return (
-			rect.top >= 0 &&
-			rect.left >= 0 &&
-			rect.bottom <= (window.innerHeight || document. documentElement.clientHeight) &&
-			rect.right <= (window.innerWidth || document. documentElement.clientWidth)
-		);
-	}
-
 	var viewModel = {
 		file: ko.observable(),
 		typeSet: ko.observable(),
 		binary: ko.observable(),
 		current: ko.observable(),
+		items: ko.observableArray(),
 		moveCurrent: function (viewModel, event) {
 			var current = viewModel.current(),
 				delta = 0;
@@ -129,6 +74,33 @@
 		},
 		clickCurrent: function (viewModel, event) {
 			if ('offset' in event.target.dataset) viewModel.current(Number(event.target.dataset.offset));
+		},
+		toHex: function (number, length) {
+			var s = number.toString(16).toUpperCase();
+			while (s.length < length) {
+				s = '0' + s;
+			}
+			return s;
+		},
+		splitBy: function (array, count) {
+			var list = [];
+			for (var i = 0, length = array.length; i < length; i += count) {
+				list.push({
+					offset: i,
+					chunk: (array.slice || array.subarray).call(array, i, i + count)
+				});
+			}
+			return list;
+		},
+		isElementInViewport: function (el) {
+			var rect = el.getBoundingClientRect();
+
+			return (
+				rect.top >= 0 &&
+				rect.left >= 0 &&
+				rect.bottom <= (window.innerHeight || document. documentElement.clientHeight) &&
+				rect.right <= (window.innerWidth || document. documentElement.clientWidth)
+			);
 		}
 	};
 
@@ -139,6 +111,7 @@
 
 		jBinary.loadData(file, function (err, data) {
 			viewModel.binary(new jBinary(data, typeSet));
+			viewModel.getItems(50);
 			viewModel.current(0);
 		});
 	});
@@ -156,10 +129,31 @@
 		}
 		currentElement = document.querySelector('#binary .value[data-offset="' + value + '"]');
 		currentElement.classList.add('current');
-		if (!isElementInViewport(currentElement)) {
+		if (!viewModel.isElementInViewport(currentElement)) {
 			currentElement.scrollIntoView(value > oldCurrent);
 		}
 	});
+
+	viewModel.items.offset = 0;
+	viewModel.scrolled = function(data, event) {
+		var elem = event.target;
+		console.log(elem.scrollTop, elem.scrollHeight, elem.offsetHeight);
+		if (elem.scrollTop > (elem.scrollHeight - elem.offsetHeight - 200)) {
+			viewModel.getItems(50);
+		}
+	};
+
+	viewModel.getItems = function (cnt) {
+		var data = viewModel.binary().read(['blob', 32 * cnt], viewModel.items.offset);
+		for (var i = 0; i < cnt; i++) {
+			var offset = 32 * i;
+			viewModel.items.push({
+				offset: viewModel.items.offset + offset,
+				chunk: (data.slice || data.subarray).call(data, offset, offset + 32)
+			});
+		}
+		viewModel.items.offset += 32 * cnt;
+	}
 
 	addEventListener('load', function () {
 		ko.applyBindings(viewModel);
@@ -171,10 +165,17 @@
 		<input type="file" id="file" data-bind="file: file" />
 		<div id="position" data-bind="if: current() !== undefined">
 			Position:
-			0x<span data-bind="text: toHex(current(), 8)"></span>
+			0x<span data-bind="text: $root.toHex(current(), 8)"></span>
 			(<span data-bind="text: current"></span>)
 		</div>
 	</div>
-	<div id="binary" tabindex="1" data-bind="binary: binary, event: {keydown: moveCurrent, click: clickCurrent}"></div>
+	<div id="binary" tabindex="1" data-bind="foreach: items, event: {keydown: moveCurrent, click: clickCurrent, scroll: scrolled}">
+		<div>
+			<span class="offset" data-bind="text: $root.toHex(offset, 8)"></span>:
+			<span data-bind="foreach: chunk">
+				<span class="value" data-bind="attr: {'data-offset': $parent.offset + $index()}, text: $root.toHex($data, 2)"></span>
+			</span>
+		</div>
+	</div>
 </body>
 </html>
