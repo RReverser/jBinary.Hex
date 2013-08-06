@@ -147,7 +147,7 @@
 	viewModel.scrolled = function(data, event) {
 		var elem = event.target;
 		if (elem.scrollTop > (elem.scrollHeight - elem.offsetHeight - 20 * 18)) {
-			viewModel.getItems(20);
+			viewModel.getItems(10);
 		}
 	};
 
@@ -180,8 +180,8 @@
 			(<span data-bind="text: current"></span>)
 		</div>
 	</div>
-	<div id="binary-wrapper">
-		<table id="binary" data-bind="foreach: items, event: {scroll: scrolled}">
+	<div id="binary-wrapper" data-bind="event: {scroll: scrolled}">
+		<table id="binary" data-bind="foreach: items">
 			<tr>
 				<td class="offset" data-bind="text: $root.toHex(offset, 8)"></td>
 				<td class="hexgroup" data-bind="foreach: chunk">
