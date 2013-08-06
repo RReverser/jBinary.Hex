@@ -18,6 +18,8 @@
 		}
 	};
 
+	var inRow = 32;
+
 	var viewModel = {
 		file: ko.observable(),
 		typeSet: ko.observable(),
@@ -31,11 +33,11 @@
 			// all browsers || Chrome
 			switch (event.key || event.keyIdentifier) {
 				case 'Up':
-					delta = -32;
+					delta = -inRow;
 					break;
 
 				case 'Down':
-					delta = 32;
+					delta = inRow;
 					break;
 
 				case 'Left':
@@ -47,11 +49,11 @@
 					break;
 
 				case 'PageUp':
-					delta = -512;
+					delta = -16 * inRow;
 					break;
 
 				case 'PageDown':
-					delta = 512;
+					delta = 16 * inRow;
 					break;
 
 				default:
@@ -102,8 +104,8 @@
 			return (
 				rect.top >= 0 &&
 				rect.left >= 0 &&
-				rect.bottom <= (window.innerHeight || document. documentElement.clientHeight) &&
-				rect.right <= (window.innerWidth || document. documentElement.clientWidth)
+				rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+				rect.right <= (window.innerWidth || document.documentElement.clientWidth)
 			);
 		}
 	};
@@ -155,16 +157,16 @@
 	viewModel.getItems = function (cnt) {
 		var binary = viewModel.binary(),
 			items = viewModel.items,
-			data = viewModel.binary().read(['blob', Math.min(32 * cnt, binary.view.byteLength - items.offset)], items.offset);
+			data = viewModel.binary().read(['blob', Math.min(inRow * cnt, binary.view.byteLength - items.offset)], items.offset);
 
-		for (var i = 0, length = Math.min(cnt, data.length / 32); i < length; i++) {
-			var offset = 32 * i;
+		for (var i = 0, length = Math.min(cnt, Math.floor(data.length / inRow)); i < length; i++) {
+			var offset = inRow * i;
 			items.push({
 				offset: items.offset + offset,
-				chunk: (data.slice || data.subarray).call(data, offset, offset + 32)
+				chunk: (data.slice || data.subarray).call(data, offset, offset + inRow)
 			});
 		}
-		items.offset += 32 * length;
+		items.offset += inRow * length;
 	}
 
 	addEventListener('load', function () {
