@@ -159,13 +159,16 @@
 			items = viewModel.items,
 			data = viewModel.binary().read(['blob', Math.min(inRow * cnt, binary.view.byteLength - items.offset)], items.offset);
 
+		var nativeItems = items();
+		items.valueWillMutate();
 		for (var i = 0, length = Math.min(cnt, Math.floor(data.length / inRow)); i < length; i++) {
 			var offset = inRow * i;
-			items.push({
+			nativeItems.push({
 				offset: items.offset + offset,
 				chunk: (data.slice || data.subarray).call(data, offset, offset + inRow)
 			});
 		}
+		items.valueHasMutated();
 		items.offset += inRow * length;
 	}
 
