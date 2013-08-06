@@ -18,7 +18,6 @@ body {
 #binary-wrapper {
 	font-family: Courier, monospace;
 	font-size: 13px;
-	line-height: 18px;
 	position: fixed;
 	top: 20pt;
 	bottom: 0;
@@ -49,6 +48,16 @@ body {
 	cursor: pointer;
 	border: 1px solid transparent;
 	border-radius: 3px;
+	display: inline-block;
+	text-align: center;
+}
+
+#binary .value.hex {
+	width: 18px;
+}
+
+#binary .value.char {
+	width: 12px;
 }
 
 #binary .current, #binary .value:hover {
