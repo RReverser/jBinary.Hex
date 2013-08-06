@@ -15,11 +15,10 @@ body {
 	float: right;
 }
 
-#binary {
+#binary-wrapper {
 	font-family: Courier, monospace;
 	font-size: 13px;
 	line-height: 18px;
-	outline: none;
 	position: fixed;
 	top: 20pt;
 	bottom: 0;
@@ -27,12 +26,23 @@ body {
 	overflow: auto;
 }
 
-#binary span {
-	padding: 0 4px;
+#binary {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+#binary td {
+	padding-left: 4pt;
+	padding-right: 4pt;
 }
 
 #binary .offset {
 	font-weight: bold;
+}
+
+#binary .hexgroup {
+	border-left: 1px solid #777;
+	border-right: 1px solid #777;
 }
 
 #binary .value {
@@ -48,4 +58,8 @@ body {
 
 #binary .value:hover {
 	border-color: #bfeeff;
+}
+
+#binary .chargroup {
+	white-space: pre;
 }

@@ -73,7 +73,11 @@
 			viewModel.current(current);
 		},
 		clickCurrent: function (viewModel, event) {
-			if ('offset' in event.target.dataset) viewModel.current(Number(event.target.dataset.offset));
+			if ('offset' in event.target.dataset) {
+				viewModel.current(Number(event.target.dataset.offset));
+			} else {
+				return true;
+			}
 		},
 		toHex: function (number, length) {
 			var s = number.toString(16).toUpperCase();
@@ -111,6 +115,8 @@
 
 		jBinary.loadData(file, function (err, data) {
 			viewModel.binary(new jBinary(data, typeSet));
+			viewModel.items.removeAll();
+			viewModel.items.offset = 0;
 			viewModel.getItems(50);
 			viewModel.current(0);
 		});
@@ -124,20 +130,20 @@
 
 	viewModel.current.subscribe(function (value) {
 		(function selectCurrent() {
-			var newElement = document.querySelector('#binary .value[data-offset="' + value + '"]');
-			if (!newElement) return setTimeout(selectCurrent, 100);
-			var oldElement = document.querySelector('#binary .current');
-			if (oldElement) {
+			var newElements = document.querySelectorAll('#binary .value[data-offset="' + value + '"]');
+			if (!newElements.length) return setTimeout(selectCurrent, 100);
+			ko.utils.arrayForEach(document.querySelectorAll('#binary .current'), function (oldElement) {
 				oldElement.classList.remove('current');
-			}
-			newElement.classList.add('current');
-			if (!viewModel.isElementInViewport(newElement)) {
-				newElement.scrollIntoView(value > oldCurrent);
+			});
+			ko.utils.arrayForEach(newElements, function (newElement) {
+				newElement.classList.add('current');
+			});
+			if (!viewModel.isElementInViewport(newElements[0])) {
+				newElements[0].scrollIntoView(value > oldCurrent);
 			}
 		})();
 	});
 
-	viewModel.items.offset = 0;
 	viewModel.scrolled = function(data, event) {
 		var elem = event.target;
 		if (elem.scrollTop > (elem.scrollHeight - elem.offsetHeight - 20 * 18)) {
@@ -150,14 +156,14 @@
 			items = viewModel.items,
 			data = viewModel.binary().read(['blob', Math.min(32 * cnt, binary.view.byteLength - items.offset)], items.offset);
 
-		for (var i = 0; i < cnt; i++) {
+		for (var i = 0, length = Math.min(cnt, data.length / 32); i < length; i++) {
 			var offset = 32 * i;
 			items.push({
 				offset: items.offset + offset,
 				chunk: (data.slice || data.subarray).call(data, offset, offset + 32)
 			});
 		}
-		items.offset += 32 * cnt;
+		items.offset += 32 * length;
 	}
 
 	addEventListener('load', function () {
@@ -165,7 +171,7 @@
 	});
 	</script>
 </head>
-<body>
+<body data-bind="event: {keydown: moveCurrent, click: clickCurrent}">
 	<div id="toolbar">
 		<input type="file" id="file" data-bind="file: file" />
 		<div id="position" data-bind="if: current() !== undefined">
@@ -174,13 +180,16 @@
 			(<span data-bind="text: current"></span>)
 		</div>
 	</div>
-	<div id="binary" tabindex="1" data-bind="foreach: items, event: {keydown: moveCurrent, click: clickCurrent, scroll: scrolled}">
-		<div>
-			<span class="offset" data-bind="text: $root.toHex(offset, 8)"></span>:
-			<span data-bind="foreach: chunk">
-				<span class="value" data-bind="attr: {'data-offset': $parent.offset + $index()}, text: $root.toHex($data, 2)"></span>
-			</span>
-		</div>
+	<div id="binary-wrapper">
+		<table id="binary" data-bind="foreach: items, event: {scroll: scrolled}">
+			<tr>
+				<td class="offset" data-bind="text: $root.toHex(offset, 8)"></td>
+				<td class="hexgroup" data-bind="foreach: chunk">
+					<span class="value hex" data-bind="attr: {'data-offset': $parent.offset + $index()}, text: $root.toHex($data, 2)"></span>
+				</td>
+				<td class="chargroup" data-bind="foreach: chunk"><span class="value char" data-bind="attr: {'data-offset': $parent.offset + $index()}, text: $data <= 32 ? ' ' : String.fromCharCode($data)"></span></td>
+			</tr>
+		</table>
 	</div>
 </body>
 </html>
