@@ -57,7 +57,7 @@ body {
 }
 
 #binary .value.char {
-	width: 12px;
+	width: 8px;
 }
 
 #binary .current, #binary .value:hover {
