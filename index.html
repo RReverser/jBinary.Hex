@@ -3,7 +3,30 @@
 <head>
 	<title>Editor</title>
 	<link rel="stylesheet" type="text/css" href="style.css" />
-	<script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/2.3.0/knockout-min.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.1/underscore-min.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/knockout/2.3.0/knockout-min.js"></script>
+	<script>
+	/* ---- Begin integration of Underscore template engine with Knockout. Could go in a separate file of course. ---- */
+	ko.underscoreTemplateEngine = function () { }
+	ko.underscoreTemplateEngine.prototype = ko.utils.extend(new ko.templateEngine(), {
+		renderTemplateSource: function (templateSource, bindingContext, options) {
+			// Precompile and cache the templates for efficiency
+			var precompiled = templateSource['data']('precompiled');
+			if (!precompiled) {
+				precompiled = _.template("<% with($data) { %> " + templateSource.text() + " <% } %>");
+				templateSource['data']('precompiled', precompiled);
+			}
+			// Run the template and parse its output into an array of DOM elements
+			var renderedMarkup = precompiled(bindingContext).replace(/\s+/g, " ");
+			return ko.utils.parseHtmlFragment(renderedMarkup);
+		},
+		createJavaScriptEvaluatorBlock: function(script) {
+			return "<%= " + script + " %>";
+		}
+	});
+	ko.setTemplateEngine(new ko.underscoreTemplateEngine());
+	/* ---- End integration of Underscore template engine with Knockout ---- */
+	</script>
 	<script src="https://rawgithub.com/jDataView/jDataView/master/src/jdataview.js"></script>
 	<script src="https://rawgithub.com/jDataView/jBinary/master/src/jbinary.js"></script>
 	<script>
@@ -25,7 +48,6 @@
 		typeSet: ko.observable(),
 		binary: ko.observable(),
 		current: ko.observable(),
-		items: ko.observableArray(),
 		moveCurrent: function (viewModel, event) {
 			var current = viewModel.current(),
 				delta = 0;
@@ -117,60 +139,28 @@
 
 		jBinary.loadData(file, function (err, data) {
 			viewModel.binary(new jBinary(data, typeSet));
-			viewModel.items.removeAll();
-			viewModel.items.offset = 0;
-			viewModel.getItems(100);
 			viewModel.current(0);
 		});
 	});
 
-	var oldCurrent;
-
-	viewModel.current.subscribe(function (value) {
-		oldCurrent = value;
-	}, this, 'beforeChange');
-
-	viewModel.current.subscribe(function (value) {
-		var newElements = document.querySelectorAll('#binary .value[data-offset="' + value + '"]');
-		if (!newElements.length) {
-			viewModel.getItems(20);
-			newElements = document.querySelectorAll('#binary .value[data-offset="' + value + '"]');
-		}
-		ko.utils.arrayForEach(document.querySelectorAll('#binary .current'), function (oldElement) {
+	ko.computed(function () {
+		var oldElements = document.querySelectorAll('#binary .current');
+		ko.utils.arrayForEach(oldElements, function (oldElement) {
 			oldElement.classList.remove('current');
 		});
+
+		var oldValue = oldElements.length ? Number(oldElements[0].getAttribute('data-offset')) : 0,
+			value = viewModel.current(),
+			newElements = document.querySelectorAll('#binary .value[data-offset="' + value + '"]');
+
 		ko.utils.arrayForEach(newElements, function (newElement) {
 			newElement.classList.add('current');
 		});
-		if (!viewModel.isElementInViewport(newElements[0])) {
-			newElements[0].scrollIntoView(value > oldCurrent);
+		
+		if (newElements.length && !viewModel.isElementInViewport(newElements[0])) {
+			newElements[0].scrollIntoView(value > oldValue);
 		}
-	});
-
-	viewModel.scrolled = function(data, event) {
-		var elem = event.target;
-		if (elem.scrollTop > (elem.scrollHeight - elem.offsetHeight - 20 * 18)) {
-			viewModel.getItems(20);
-		}
-	};
-
-	viewModel.getItems = function (cnt) {
-		var binary = viewModel.binary(),
-			items = viewModel.items,
-			data = viewModel.binary().read(['blob', Math.min(inRow * cnt, binary.view.byteLength - items.offset)], items.offset);
-
-		var nativeItems = items();
-		items.valueWillMutate();
-		for (var i = 0, length = Math.min(cnt, Math.floor(data.length / inRow)); i < length; i++) {
-			var offset = inRow * i;
-			nativeItems.push({
-				offset: items.offset + offset,
-				chunk: (data.slice || data.subarray).call(data, offset, offset + inRow)
-			});
-		}
-		items.valueHasMutated();
-		items.offset += inRow * length;
-	}
+	}).extend({throttle: 1});
 
 	addEventListener('load', function () {
 		ko.applyBindings(viewModel);
@@ -186,15 +176,25 @@
 			(<span data-bind="text: current"></span>)
 		</div>
 	</div>
-	<div id="binary-wrapper" data-bind="event: {scroll: scrolled}">
+	<script id="tableTemplate" type="text/html">
+		<%
+			function inChunk(data, offset, callback) {
+				for (var i = offset, max = Math.min(offset + inRow, data.length); i < max; i++) {
+					callback(data[i], i);
+				}
+			}
+		%>
+		<% for (var offset = 0, length = $data.length; offset < length; offset += inRow) { %>
+			<tr>
+				<td class="offset"><%= $root.toHex(offset, 8) %></td>
+				<td class="hexgroup"><% inChunk($data, offset, function (value, offset) { %><span class="value hex" data-offset="<%= offset %>"><%= $root.toHex(value, 2) %></span><% }) %></td>
+				<td class="chargroup"><% inChunk($data, offset, function (code, offset) { %><span class="value char" data-offset="<%= offset %>"><%= code <= 32 ? ' ' : String.fromCharCode(code) %></span><% }) %></td>
+			</tr>
+		<% } %>
+	</script>
+	<div id="binary-wrapper">
 		<table id="binary">
-			<tbody data-bind="foreach: items">
-				<tr>
-					<td class="offset" data-bind="text: $root.toHex(offset, 8)"></td>
-					<td class="hexgroup" data-bind="foreach: chunk"><span class="value hex" data-bind="attr: {'data-offset': $parent.offset + $index()}, text: $root.toHex($data, 2)"></span></td>
-					<td class="chargroup" data-bind="foreach: chunk"><span class="value char" data-bind="attr: {'data-offset': $parent.offset + $index()}, text: $data <= 32 ? ' ' : String.fromCharCode($data)"></span></td>
-				</tr>
-			</tbody>
+			<tbody data-bind="template: {name: 'tableTemplate', data: binary() ? binary().read('blob', 0) : []}"></tbody>
 		</table>
 	</div>
 </body>
