@@ -3,7 +3,8 @@
 <head>
 	<title>Editor</title>
 	<link rel="stylesheet" type="text/css" href="style.css" />
-	<script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/2.3.0/knockout-min.js"></script>
+	<script src="http://knockoutjs.com/downloads/knockout-2.3.0.debug.js"></script>
+	<script src="ko.virtualForEach.js"></script>
 	<script src="https://rawgithub.com/jDataView/jDataView/master/src/jdataview.js"></script>
 	<script src="https://rawgithub.com/jDataView/jBinary/master/src/jbinary.js"></script>
 	<script>
@@ -118,8 +119,7 @@
 		jBinary.loadData(file, function (err, data) {
 			viewModel.binary(new jBinary(data, typeSet));
 			viewModel.items.removeAll();
-			viewModel.items.offset = 0;
-			viewModel.getItems(100);
+			viewModel.getItems(Infinity);
 			viewModel.current(0);
 		});
 	});
@@ -142,34 +142,25 @@
 		ko.utils.arrayForEach(newElements, function (newElement) {
 			newElement.classList.add('current');
 		});
-		if (!viewModel.isElementInViewport(newElements[0])) {
+		if (newElements.length && !viewModel.isElementInViewport(newElements[0])) {
 			newElements[0].scrollIntoView(value > oldCurrent);
 		}
 	});
 
-	viewModel.scrolled = function(data, event) {
-		var elem = event.target;
-		if (elem.scrollTop > (elem.scrollHeight - elem.offsetHeight - 20 * 18)) {
-			viewModel.getItems(20);
-		}
-	};
-
-	viewModel.getItems = function (cnt) {
+	viewModel.getItems = function () {
 		var binary = viewModel.binary(),
 			items = viewModel.items,
-			data = viewModel.binary().read(['blob', Math.min(inRow * cnt, binary.view.byteLength - items.offset)], items.offset);
+			data = viewModel.binary().read('blob', 0);
 
 		var nativeItems = items();
 		items.valueWillMutate();
-		for (var i = 0, length = Math.min(cnt, Math.floor(data.length / inRow)); i < length; i++) {
-			var offset = inRow * i;
+		for (var offset = 0, length = data.length; offset < length; offset += inRow) {
 			nativeItems.push({
-				offset: items.offset + offset,
+				offset: offset,
 				chunk: (data.slice || data.subarray).call(data, offset, offset + inRow)
 			});
 		}
 		items.valueHasMutated();
-		items.offset += inRow * length;
 	}
 
 	addEventListener('load', function () {
@@ -186,9 +177,9 @@
 			(<span data-bind="text: current"></span>)
 		</div>
 	</div>
-	<div id="binary-wrapper" data-bind="event: {scroll: scrolled}">
+	<div id="binary-wrapper">
 		<table id="binary">
-			<tbody data-bind="foreach: items">
+			<tbody data-bind="virtualForEach: {items: items, rowHeight: 20, container: $element.parentNode.parentNode}">
 				<tr>
 					<td class="offset" data-bind="text: $root.toHex(offset, 8)"></td>
 					<td class="hexgroup" data-bind="foreach: chunk"><span class="value hex" data-bind="attr: {'data-offset': $parent.offset + $index()}, text: $root.toHex($data, 2)"></span></td>

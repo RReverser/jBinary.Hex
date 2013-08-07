@@ -30,6 +30,10 @@ body {
 	border-spacing: 0;
 }
 
+#binary tr {
+	height: 20px;
+}
+
 #binary td {
 	padding-left: 4pt;
 	padding-right: 4pt;
