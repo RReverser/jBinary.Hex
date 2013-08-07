@@ -1,37 +1,36 @@
 ko.bindingHandlers.virtualForEach = {
 	init: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
 		var config = valueAccessor(),
-			container = config.container || element;
-
-		var isRangeChanged = ko.observable(true);
-		config.range = ko.computed(function () {
-			if (!isRangeChanged()) return;
-			isRangeChanged(false);
-
-			var rowHeight = ko.utils.unwrapObservable(config.rowHeight);
-
-			return {
-				first: Math.floor(container.scrollTop / rowHeight),
-				last: Math.ceil((container.scrollTop + container.offsetHeight) / rowHeight)
-			};
-		});
+			container = config.container || element,
+			scrollTop = ko.observable(container.scrollTop),
+			offsetHeight = ko.observable(container.offsetHeight);
 
 		ko.utils.registerEventHandler(container, 'scroll', function () {
-			isRangeChanged(true);
+			scrollTop(container.scrollTop);
 		});
 
 		ko.utils.registerEventHandler(window, 'resize', function () {
-			isRangeChanged(true);
+			offsetHeight(container.offsetHeight);
 		});
 
 		config.data = ko.computed(function () {
-			return ko.utils.unwrapObservable(config.items).slice(config.range().first, config.range().last);
-		});
+			var items = ko.utils.unwrapObservable(config.allData),
+				curScrollTop = scrollTop(),
+				curOffsetHeight = offsetHeight(),
+				curRowHeight = ko.utils.unwrapObservable(config.rowHeight),
+				curRange = {
+					first: Math.floor(curScrollTop / curRowHeight),
+					last: Math.ceil((curScrollTop + curOffsetHeight) / curRowHeight)
+				};
+
+			element.style.paddingTop = curScrollTop + 'px';
+			element.style.height = (items.length * curRowHeight - curScrollTop) + 'px';
+			
+			return items.slice(curRange.first, curRange.last);
+		}).extend({throttle: 50});
 
 		return ko.bindingHandlers.foreach.init.apply(ko.bindingHandlers.foreach, arguments);
 	},
-	update: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
-		return ko.bindingHandlers.foreach.update.apply(ko.bindingHandlers.foreach, arguments);
-	}
+	update: ko.bindingHandlers.foreach.update
 };
 ko.virtualElements.allowedBindings.virtualForEach = true;

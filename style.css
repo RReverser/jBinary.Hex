@@ -30,6 +30,10 @@ body {
 	border-spacing: 0;
 }
 
+#binary tbody {
+	display: block;
+}
+
 #binary tr {
 	height: 20px;
 }
