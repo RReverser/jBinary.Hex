@@ -1,19 +1,36 @@
+(function () {
+
+function eventedComputed(element, type, getValue) {
+	var observable = ko.observable(),
+		setValue = function () {
+			observable(getValue.call(element));
+		};
+
+	ko.utils.registerEventHandler(element, type, setValue);
+	setValue();
+
+	return ko.computed(observable);
+}
+
+var windowHeight = eventedComputed(window, 'resize', function () {
+	return this.document.documentElement.offsetHeight || this.innerHeight;
+});
+
 ko.bindingHandlers.virtualForEach = {
 	init: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
 		var config = valueAccessor(),
 			container = config.container || element,
-			scrollTop = ko.observable(container.scrollTop),
-			offsetHeight = ko.observable(container.offsetHeight);
-
-		ko.utils.registerEventHandler(container, 'scroll', function () {
-			scrollTop(container.scrollTop);
-		});
-
-		ko.utils.registerEventHandler(window, 'resize', function () {
-			offsetHeight(container.offsetHeight);
-		});
+			scrollTop = eventedComputed(container, 'scroll', function () {
+				return this.scrollTop;
+			}),
+			offsetHeight = ko.computed(function () {
+				windowHeight();
+				return container.offsetHeight;
+			});
 
 		config.data = ko.computed(function () {
+			console.log('update');
+
 			var items = ko.utils.unwrapObservable(config.allData),
 				curScrollTop = scrollTop(),
 				curOffsetHeight = offsetHeight(),
@@ -33,4 +50,8 @@ ko.bindingHandlers.virtualForEach = {
 	},
 	update: ko.bindingHandlers.foreach.update
 };
+
+ko.expressionRewriting.bindingRewriteValidators.virtualForEach = false;
 ko.virtualElements.allowedBindings.virtualForEach = true;
+
+})();
