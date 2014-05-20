@@ -2,20 +2,20 @@ body {
 	margin: 0;
 }
 
-#toolbar {
+.toolbar {
 	position: fixed;
 	width: 100%;
 	height: 20pt;
 	background: #fff;
 	z-index: 1;
-	border-bottom: 1px solid #777;
+	border-bottom: 1px solid .777;
 }
 
-#position {
+.position {
 	float: right;
 }
 
-#binary-wrapper {
+.binary-wrapper {
 	font-family: Courier, monospace;
 	font-size: 13px;
 	position: fixed;
@@ -25,34 +25,34 @@ body {
 	overflow: auto;
 }
 
-#binary {
+.binary {
 	border-collapse: collapse;
 	border-spacing: 0;
 }
 
-#binary tbody {
+.binary tbody {
 	display: block;
 }
 
-#binary tr {
+.binary tr {
 	height: 20px;
 }
 
-#binary td {
+.binary td {
 	padding-left: 4pt;
 	padding-right: 4pt;
 }
 
-#binary .offset {
+.binary .offset {
 	font-weight: bold;
 }
 
-#binary .hexgroup {
-	border-left: 1px solid #777;
-	border-right: 1px solid #777;
+.binary .hexgroup {
+	border-left: 1px solid .777;
+	border-right: 1px solid .777;
 }
 
-#binary .value {
+.binary .value {
 	cursor: pointer;
 	border: 1px solid transparent;
 	border-radius: 3px;
@@ -60,23 +60,23 @@ body {
 	text-align: center;
 }
 
-#binary .value.hex {
+.binary .value.hex {
 	width: 18px;
 }
 
-#binary .value.char {
+.binary .value.char {
 	width: 8px;
 }
 
-#binary .current, #binary .value:hover {
+.binary .current, .binary .value:hover {
 	background: #6b9aba;
 	color: #fff;
 }
 
-#binary .value:hover {
+.binary .value:hover {
 	border-color: #bfeeff;
 }
 
-#binary .chargroup {
+.binary .chargroup {
 	white-space: pre;
 }

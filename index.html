@@ -3,32 +3,11 @@
 <head>
 	<title>Editor</title>
 	<link rel="stylesheet" type="text/css" href="style.css" />
-	<script src="http://knockoutjs.com/downloads/knockout-2.3.0.debug.js"></script>
-	<script src="ko.virtualForEach.js"></script>
-	<script src="ko.file.js"></script>
-	<script src="https://rawgithub.com/jDataView/jDataView/master/src/jdataview.js"></script>
-	<script src="https://rawgithub.com/jDataView/jBinary/master/src/jbinary.js"></script>
-	<script src="main.js"></script>
+	<script src="http://fb.me/react-0.10.0.js"></script>
+	<script src="https://jdataview.github.io/dist/jdataview.js"></script>
+	<script src="https://jdataview.github.io/dist/jbinary.js"></script>
 </head>
-<body data-bind="event: {keydown: moveCurrent, click: clickCurrent}">
-	<div id="toolbar">
-		<input type="file" id="file" data-bind="file: file" />
-		<div id="position" data-bind="if: current() !== undefined">
-			Position:
-			0x<span data-bind="text: $root.toHex(current(), 8)"></span>
-			(<span data-bind="text: current"></span>)
-		</div>
-	</div>
-	<div id="binary-wrapper">
-		<table id="binary">
-			<tbody data-bind="virtualForEach: {allData: items, rowHeight: 20, container: $element.parentNode.parentNode, afterRender: function () { current.onRender.notifySubscribers() }}">
-				<tr>
-					<td class="offset" data-bind="text: $root.toHex(offset, 8)"></td>
-					<td class="hexgroup" data-bind="foreach: chunk"><span class="value hex" data-bind="attr: {'data-offset': $parent.offset + $index()}, text: $root.toHex($data, 2)"></span></td>
-					<td class="chargroup" data-bind="foreach: chunk"><span class="value char" data-bind="attr: {'data-offset': $parent.offset + $index()}, text: $data <= 32 ? ' ' : String.fromCharCode($data)"></span></td>
-				</tr>
-			</tbody>
-		</table>
-	</div>
+<body>
+	<script src="index.js"></script>
 </body>
 </html>
