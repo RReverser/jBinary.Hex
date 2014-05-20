@@ -17,16 +17,13 @@
             var ChunkItem = _require(1);
             module.exports = React.createClass({
                 displayName: 'exports',
-                shouldComponentUpdate: function (props) {
-                    var oldPosition = this.props.position, newPosition = props.position, from = props.offset, to = from + this.props.delta;
-                    return oldPosition >= from && oldPosition < to || newPosition >= from && newPosition < to;
-                },
                 render: function () {
                     var items = [], formatter = this.props.formatter, formatterName = this.props.formatterName, position = this.props.position, data = this.props.data;
+                    var start = 0;
                     for (var i = this.props.offset, maxI = Math.min(this.props.data.length, i + this.props.delta); i < maxI; i++) {
                         items.push(ChunkItem({
                             data: this.props.data,
-                            key: i,
+                            key: start++,
                             offset: i,
                             position: position,
                             formatter: formatter,
@@ -41,15 +38,10 @@
         function (module, exports) {
             module.exports = React.createClass({
                 displayName: 'exports',
-                shouldComponentUpdate: function (props) {
-                    var oldPosition = this.props.position, newPosition = props.position, offset = this.props.offset;
-                    return offset === oldPosition || offset === newPosition;
-                },
                 render: function () {
                     var offset = this.props.offset;
                     return React.DOM.span({
                         className: 'value ' + this.props.formatterName + (offset === this.props.position ? ' current' : ''),
-                        'data-offset': offset,
                         onClick: this.props.onClick
                     }, this.props.formatter(this.props.data[offset]));
                 }
@@ -76,7 +68,7 @@
                     if (data) {
                         totalLines = Math.ceil(data.length / delta);
                         for (var i = this.state.start; i < Math.min(this.state.start + this.props.lines, totalLines); ++i) {
-                            rows.push(React.DOM.tr({ key: i }, React.DOM.td({ className: 'offset' }, toHex(i, 8)), Chunk({
+                            rows.push(React.DOM.tr({ key: i - this.state.start }, React.DOM.td({ className: 'offset' }, toHex(i, 8)), Chunk({
                                 data: data,
                                 position: position,
                                 offset: i * delta,
@@ -155,8 +147,7 @@
             var Editor = _require(3);
             React.renderComponent(Editor({
                 delta: 32,
-                lines: 10,
-                start: 0
+                lines: 10
             }), document.body);
         },
         function (module, exports) {

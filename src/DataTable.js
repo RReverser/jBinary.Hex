@@ -29,7 +29,7 @@ module.exports = React.createClass({
 		if (data) {
 			totalLines = Math.ceil(data.length / delta);
 			for (var i = this.state.start; i < Math.min(this.state.start + this.props.lines, totalLines); ++i) {
-				rows.push(<tr key={i}>
+				rows.push(<tr key={i - this.state.start}>
 					<td className="offset">{toHex(i, 8)}</td>
 					<Chunk
 						data={data}
