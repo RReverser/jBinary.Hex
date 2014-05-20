@@ -58,16 +58,28 @@
         function (module, exports) {
             var Chunk = _require(0);
             var toHex = _require(5).toHex;
+            var HEIGHT = 20;
             module.exports = React.createClass({
                 displayName: 'exports',
+                getInitialState: function () {
+                    return { start: 0 };
+                },
+                onScroll: function (event) {
+                    var newStart = Math.floor(event.target.scrollTop / HEIGHT);
+                    if (newStart !== this.state.start) {
+                        this.setState({ start: newStart });
+                    }
+                },
                 render: function () {
                     var rows = [], data = this.props.data, position = this.props.position, delta = this.props.delta;
+                    var totalLines = 0;
                     if (data) {
-                        for (var i = 0, length = data.length; i < length; i += delta) {
+                        totalLines = Math.ceil(data.length / delta);
+                        for (var i = this.state.start; i < Math.min(this.state.start + this.props.lines, totalLines); ++i) {
                             rows.push(React.DOM.tr({ key: i }, React.DOM.td({ className: 'offset' }, toHex(i, 8)), Chunk({
                                 data: data,
                                 position: position,
-                                offset: i,
+                                offset: i * delta,
                                 delta: delta,
                                 formatter: function (data) {
                                     return toHex(data, 2);
@@ -77,7 +89,7 @@
                             }), Chunk({
                                 data: data,
                                 position: position,
-                                offset: i,
+                                offset: i * delta,
                                 delta: delta,
                                 formatter: function (data) {
                                     return data <= 32 ? ' ' : String.fromCharCode(data);
@@ -87,10 +99,14 @@
                             })));
                         }
                     }
-                    return React.DOM.div({ className: 'binary-wrapper' }, React.DOM.table({
+                    return React.DOM.div({
+                        className: 'binary-wrapper',
+                        style: { height: this.props.lines * HEIGHT },
+                        onScroll: this.onScroll
+                    }, React.DOM.table({
                         className: 'binary',
                         cols: delta
-                    }, React.DOM.tbody(null, rows)));
+                    }, React.DOM.tbody(null, rows)), React.DOM.div({ style: { height: totalLines * HEIGHT } }));
                 }
             });
         },
@@ -129,6 +145,7 @@
                         data: data,
                         position: position,
                         delta: this.props.delta,
+                        lines: this.props.lines,
                         onItemClick: this.handleItemClick
                     }));
                 }
@@ -136,7 +153,11 @@
         },
         function (module, exports) {
             var Editor = _require(3);
-            React.renderComponent(Editor({ delta: 32 }), document.body);
+            React.renderComponent(Editor({
+                delta: 32,
+                lines: 10,
+                start: 0
+            }), document.body);
         },
         function (module, exports) {
             exports.toHex = function (number, length) {

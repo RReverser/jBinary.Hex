@@ -36,7 +36,13 @@ module.exports = React.createClass({
 					(<span>{position}</span>)
 				</div>
 			</div>
-			<DataTable data={data} position={position} delta={this.props.delta} onItemClick={this.handleItemClick} />
+			<DataTable
+				data={data}
+				position={position}
+				delta={this.props.delta}
+				lines={this.props.lines}
+				onItemClick={this.handleItemClick}
+			/>
 		</div>;
 	}
 });

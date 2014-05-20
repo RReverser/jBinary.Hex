@@ -22,10 +22,12 @@ body {
 	top: 20pt;
 	bottom: 0;
 	width: 100%;
-	overflow: auto;
+	overflow-y: scroll;
+	background-color: #ccc;
 }
 
 .binary {
+	position: fixed;
 	border-collapse: collapse;
 	border-spacing: 0;
 }
