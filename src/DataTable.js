@@ -8,17 +8,40 @@ var HEIGHT = 20;
 module.exports = React.createClass({
 	displayName: 'DataTable',
 
-	getInitialState: function() {
+	getInitialState: function () {
 		return {
 			start: 0
 		};
 	},
 
-	onScroll: function(event) {
+	onScroll: function (event) {
 		var newStart = Math.floor(event.target.scrollTop / HEIGHT);
 		console.time('scroll');
 		if (newStart !== this.state.start) {
 			this.setState({start: newStart}, () => { console.timeEnd('scroll') });
+		}
+	},
+
+	componentWillReceiveProps: function (props) {
+		if (!props.data) {
+			return;
+		}
+
+		var delta = props.delta,
+			line = Math.floor(props.position / delta),
+			start = this.state.start,
+			totalLines = Math.ceil(props.data.length / delta),
+			end = Math.min(start + props.lines, totalLines);
+
+		if (line < start) {
+			this.setState({
+				start: line
+			});
+		} else
+		if (line >= end) {
+			this.setState({
+				start: start + (line - end)
+			});
 		}
 	},
 

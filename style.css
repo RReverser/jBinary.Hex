@@ -2,6 +2,10 @@ body {
 	margin: 0;
 }
 
+.editor:focus {
+	outline: none;
+}
+
 .toolbar {
 	position: fixed;
 	width: 100%;

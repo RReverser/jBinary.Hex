@@ -12,9 +12,11 @@ module.exports = React.createClass({
 			position: 0
 		};
 	},
+
 	handleItemClick: function (event) {
 		this.setState({position: Number(event.target.dataset.offset)});
 	},
+	
 	handleFile: function (event) {
 		this.setState(this.getInitialState());
 
@@ -25,11 +27,12 @@ module.exports = React.createClass({
 			});
 		});
 	},
+	
 	render: function () {
 		var data = this.state.data,
 			position = this.state.position;
 
-		return <div className="editor">
+		return <div className="editor" tabIndex={0} onKeyDown={this.onKeyDown}>
 			<div className="toolbar">
 				<input type="file" onChange={this.handleFile} />
 				<div className="position" style={{display: data ? 'block' : 'none'}}>
@@ -46,5 +49,52 @@ module.exports = React.createClass({
 				onItemClick={this.handleItemClick}
 			/>
 		</div>;
+	},
+
+	onKeyDown: function (event) {
+		if (!this.state.data) {
+			return;
+		}
+
+		var delta;
+
+		switch (event.key) {
+			case 'ArrowUp':
+				delta = -this.props.delta;
+				break;
+
+			case 'ArrowDown':
+				delta = this.props.delta;
+				break;
+
+			case 'ArrowLeft':
+				delta = -1;
+				break;
+
+			case 'ArrowRight':
+				delta = 1;
+				break;
+
+			case 'PageUp':
+				delta = -this.props.lines * this.props.delta;
+				break;
+
+			case 'PageDown':
+				delta = this.props.lines * this.props.delta;
+				break;
+
+			default:
+				return;
+		}
+
+		event.preventDefault();
+
+		var position = this.state.position;
+
+		if ((delta > 0 && position < this.state.data.length - delta) || (delta < 0 && position >= -delta)) {
+			this.setState({
+				position: position += delta
+			});
+		}
 	}
 });

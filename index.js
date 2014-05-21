@@ -63,6 +63,17 @@
                         });
                     }
                 },
+                componentWillReceiveProps: function (props) {
+                    if (!props.data) {
+                        return;
+                    }
+                    var delta = props.delta, line = Math.floor(props.position / delta), start = this.state.start, totalLines = Math.ceil(props.data.length / delta), end = Math.min(start + props.lines, totalLines);
+                    if (line < start) {
+                        this.setState({ start: line });
+                    } else if (line >= end) {
+                        this.setState({ start: start + (line - end) });
+                    }
+                },
                 render: function () {
                     var rows = [], data = this.props.data, position = this.props.position, delta = this.props.delta;
                     var totalLines = 0;
@@ -128,7 +139,11 @@
                 },
                 render: function () {
                     var data = this.state.data, position = this.state.position;
-                    return React.DOM.div({ className: 'editor' }, React.DOM.div({ className: 'toolbar' }, React.DOM.input({
+                    return React.DOM.div({
+                        className: 'editor',
+                        tabIndex: 0,
+                        onKeyDown: this.onKeyDown
+                    }, React.DOM.div({ className: 'toolbar' }, React.DOM.input({
                         type: 'file',
                         onChange: this.handleFile
                     }), React.DOM.div({
@@ -141,6 +156,39 @@
                         lines: this.props.lines,
                         onItemClick: this.handleItemClick
                     }));
+                },
+                onKeyDown: function (event) {
+                    if (!this.state.data) {
+                        return;
+                    }
+                    var delta;
+                    switch (event.key) {
+                    case 'ArrowUp':
+                        delta = -this.props.delta;
+                        break;
+                    case 'ArrowDown':
+                        delta = this.props.delta;
+                        break;
+                    case 'ArrowLeft':
+                        delta = -1;
+                        break;
+                    case 'ArrowRight':
+                        delta = 1;
+                        break;
+                    case 'PageUp':
+                        delta = -this.props.lines * this.props.delta;
+                        break;
+                    case 'PageDown':
+                        delta = this.props.lines * this.props.delta;
+                        break;
+                    default:
+                        return;
+                    }
+                    event.preventDefault();
+                    var position = this.state.position;
+                    if (delta > 0 && position < this.state.data.length - delta || delta < 0 && position >= -delta) {
+                        this.setState({ position: position += delta });
+                    }
                 }
             });
         },
