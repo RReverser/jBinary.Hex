@@ -40,7 +40,6 @@
                 var offset = props.offset;
                 return React.DOM.span({
                     className: 'value ' + props.formatterName + (offset === props.position ? ' current' : ''),
-                    'data-offset': offset,
                     onClick: props.onClick
                 }, props.formatter(props.data[offset]));
             };
