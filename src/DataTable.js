@@ -14,8 +14,11 @@ module.exports = React.createClass({
 
 	onScroll: function(event) {
 		var newStart = Math.floor(event.target.scrollTop / HEIGHT);
+		var t = performance.now()
 		if (newStart !== this.state.start) {
-			this.setState({start: newStart});
+			this.setState({start: newStart}, function() {
+				console.log(performance.now() - t);
+			});
 		}
 	},
 

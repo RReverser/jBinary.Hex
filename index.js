@@ -36,16 +36,14 @@
             });
         },
         function (module, exports) {
-            module.exports = React.createClass({
-                displayName: 'exports',
-                render: function () {
-                    var offset = this.props.offset;
-                    return React.DOM.span({
-                        className: 'value ' + this.props.formatterName + (offset === this.props.position ? ' current' : ''),
-                        onClick: this.props.onClick
-                    }, this.props.formatter(this.props.data[offset]));
-                }
-            });
+            module.exports = function (props) {
+                var offset = props.offset;
+                return React.DOM.span({
+                    className: 'value ' + props.formatterName + (offset === props.position ? ' current' : ''),
+                    'data-offset': offset,
+                    onClick: props.onClick
+                }, props.formatter(props.data[offset]));
+            };
         },
         function (module, exports) {
             var Chunk = _require(0);
@@ -58,8 +56,11 @@
                 },
                 onScroll: function (event) {
                     var newStart = Math.floor(event.target.scrollTop / HEIGHT);
+                    var t = performance.now();
                     if (newStart !== this.state.start) {
-                        this.setState({ start: newStart });
+                        this.setState({ start: newStart }, function () {
+                            console.log(performance.now() - t);
+                        });
                     }
                 },
                 render: function () {
@@ -147,7 +148,7 @@
             var Editor = _require(3);
             React.renderComponent(Editor({
                 delta: 32,
-                lines: 10
+                lines: 20
             }), document.body);
         },
         function (module, exports) {

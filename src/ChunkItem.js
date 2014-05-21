@@ -1,13 +1,9 @@
 /** @jsx React.DOM */
 
-module.exports = React.createClass({
-	render: function () {
-		var offset = this.props.offset;
+module.exports = function (props) {
+	var offset = props.offset;
 
-		return <span
-			className={'value ' + this.props.formatterName + (offset === this.props.position ? ' current' : '')}
-			onClick={this.props.onClick}>
-			{this.props.formatter(this.props.data[offset])}
-		</span>;
-	}
-});
+	return <span className={'value ' + props.formatterName + (offset === props.position ? ' current' : '')} data-offset={offset} onClick={props.onClick}>
+		{props.formatter(props.data[offset])}
+	</span>;
+};
