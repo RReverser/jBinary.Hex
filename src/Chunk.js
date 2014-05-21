@@ -3,15 +3,6 @@
 var ChunkItem = require('./ChunkItem');
 
 module.exports = React.createClass({
-	shouldComponentUpdate: function (props) {
-		var oldPosition = this.props.position,
-			newPosition = props.position,
-			from = props.offset,
-			to = from + this.props.delta;
-
-		return ((oldPosition >= from && oldPosition < to) || (newPosition >= from && newPosition < to));
-	},
-
 	render: function () {
 		var items = [],
 			formatter = this.props.formatter,
@@ -19,10 +10,11 @@ module.exports = React.createClass({
 			position = this.props.position,
 			data = this.props.data;
 
+		var start = 0;
 		for (var i = this.props.offset, maxI = Math.min(this.props.data.length, i + this.props.delta); i < maxI; i++) {
 			items.push(<ChunkItem
 				data={this.props.data}
-				key={i}
+				key={start++}
 				offset={i}
 				position={position}
 				formatter={formatter}
