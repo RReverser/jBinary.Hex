@@ -4,6 +4,8 @@ var DataTable = require('./DataTable');
 var toHex = require('./utils').toHex;
 
 module.exports = React.createClass({
+	displayName: 'Editor',
+
 	getInitialState: function () {
 		return {
 			data: null,

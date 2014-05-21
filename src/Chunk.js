@@ -3,23 +3,27 @@
 var ChunkItem = require('./ChunkItem');
 
 module.exports = React.createClass({
+	displayName: 'Chunk',
+
 	render: function () {
 		var items = [],
 			formatter = this.props.formatter,
-			formatterName = this.props.formatterName,
+			formatterName = this.props.key,
 			position = this.props.position,
-			data = this.props.data;
+			data = this.props.data,
+			start = this.props.offset,
+			end = Math.min(data.length, start + this.props.delta),
+			onItemClick = this.props.onItemClick;
 
-		var start = 0;
-		for (var i = this.props.offset, maxI = Math.min(this.props.data.length, i + this.props.delta); i < maxI; i++) {
+		for (var i = start; i < end; i++) {
 			items.push(<ChunkItem
-				data={this.props.data}
-				key={start++}
+				data={data[i]}
+				key={i - start}
 				offset={i}
 				position={position}
 				formatter={formatter}
 				formatterName={formatterName}
-				onClick={this.props.onItemClick} />);
+				onClick={onItemClick} />);
 		}
 
 		return <td className={formatterName + 'group'}>{items}</td>;

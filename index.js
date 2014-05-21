@@ -16,19 +16,18 @@
         function (module, exports) {
             var ChunkItem = _require(1);
             module.exports = React.createClass({
-                displayName: 'exports',
+                displayName: 'Chunk',
                 render: function () {
-                    var items = [], formatter = this.props.formatter, formatterName = this.props.formatterName, position = this.props.position, data = this.props.data;
-                    var start = 0;
-                    for (var i = this.props.offset, maxI = Math.min(this.props.data.length, i + this.props.delta); i < maxI; i++) {
+                    var items = [], formatter = this.props.formatter, formatterName = this.props.key, position = this.props.position, data = this.props.data, start = this.props.offset, end = Math.min(data.length, start + this.props.delta), onItemClick = this.props.onItemClick;
+                    for (var i = start; i < end; i++) {
                         items.push(ChunkItem({
-                            data: this.props.data,
-                            key: start++,
+                            data: data[i],
+                            key: i - start,
                             offset: i,
                             position: position,
                             formatter: formatter,
                             formatterName: formatterName,
-                            onClick: this.props.onItemClick
+                            onClick: onItemClick
                         }));
                     }
                     return React.DOM.td({ className: formatterName + 'group' }, items);
@@ -40,8 +39,10 @@
                 var offset = props.offset;
                 return React.DOM.span({
                     className: 'value ' + props.formatterName + (offset === props.position ? ' current' : ''),
+                    key: props.key,
+                    'data-offset': offset,
                     onClick: props.onClick
-                }, props.formatter(props.data[offset]));
+                }, props.formatter(props.data));
             };
         },
         function (module, exports) {
@@ -49,7 +50,7 @@
             var toHex = _require(5).toHex;
             var HEIGHT = 20;
             module.exports = React.createClass({
-                displayName: 'exports',
+                displayName: 'DataTable',
                 getInitialState: function () {
                     return { start: 0 };
                 },
@@ -67,8 +68,8 @@
                     var totalLines = 0;
                     if (data) {
                         totalLines = Math.ceil(data.length / delta);
-                        for (var i = this.state.start; i < Math.min(this.state.start + this.props.lines, totalLines); ++i) {
-                            rows.push(React.DOM.tr({ key: i - this.state.start }, React.DOM.td({ className: 'offset' }, toHex(i, 8)), Chunk({
+                        for (var i = this.state.start, maxI = Math.min(this.state.start + this.props.lines, totalLines); i < maxI; i++) {
+                            rows.push(React.DOM.tr({ key: i }, React.DOM.td({ className: 'offset' }, toHex(i * delta, 8)), Chunk({
                                 data: data,
                                 position: position,
                                 offset: i * delta,
@@ -76,7 +77,7 @@
                                 formatter: function (data) {
                                     return toHex(data, 2);
                                 },
-                                formatterName: 'hex',
+                                key: 'hex',
                                 onItemClick: this.props.onItemClick
                             }), Chunk({
                                 data: data,
@@ -86,7 +87,7 @@
                                 formatter: function (data) {
                                     return data <= 32 ? ' ' : String.fromCharCode(data);
                                 },
-                                formatterName: 'char',
+                                key: 'char',
                                 onItemClick: this.props.onItemClick
                             })));
                         }
@@ -106,7 +107,7 @@
             var DataTable = _require(2);
             var toHex = _require(5).toHex;
             module.exports = React.createClass({
-                displayName: 'exports',
+                displayName: 'Editor',
                 getInitialState: function () {
                     return {
                         data: null,
