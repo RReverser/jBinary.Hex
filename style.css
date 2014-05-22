@@ -56,6 +56,7 @@ body {
 .binary .hexgroup {
 	border-left: 1px solid .777;
 	border-right: 1px solid .777;
+	width: 640px;
 }
 
 .binary .value {
@@ -85,4 +86,5 @@ body {
 
 .binary .chargroup {
 	white-space: pre;
+	width: 320px;
 }
