@@ -5,6 +5,15 @@ var ChunkItem = require('./ChunkItem');
 module.exports = React.createClass({
 	displayName: 'Chunk',
 
+	shouldComponentUpdate: function (props) {
+		var oldPos = this.props.position,
+			newPos = props.position,
+			start = props.offset,
+			end = start + this.props.delta;
+
+		return ((oldPos >= start && oldPos < end) || (newPos >= start && newPos < end));
+	},
+
 	render: function () {
 		var items = [],
 			formatter = this.props.formatter,
