@@ -22,7 +22,7 @@ body {
 .binary-wrapper {
 	font-family: Courier, monospace;
 	font-size: 13px;
-	position: fixed;
+	position: absolute;
 	top: 20pt;
 	bottom: 0;
 	width: 100%;
