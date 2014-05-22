@@ -52,35 +52,60 @@ module.exports = React.createClass({
 	},
 
 	onKeyDown: function (event) {
-		if (!this.state.data) {
+		var data = this.state.data;
+
+		if (!data) {
 			return;
 		}
 
-		var delta;
+		var delta = this.props.delta,
+			lines = this.props.lines,
+			pos = this.state.position,
+			maxPos = data.length - 1;
 
 		switch (event.key) {
 			case 'ArrowUp':
-				delta = -this.props.delta;
+				pos -= delta;
+				if (pos < 0) {
+					return;
+				}
 				break;
 
 			case 'ArrowDown':
-				delta = this.props.delta;
+				pos += delta;
+				if (pos > maxPos) {
+					return;
+				}
 				break;
 
 			case 'ArrowLeft':
-				delta = -1;
+				pos--;
+				if (pos < 0) {
+					return;
+				}
 				break;
 
 			case 'ArrowRight':
-				delta = 1;
+				pos++;
+				if (pos > maxPos) {
+					return;
+				}
 				break;
 
 			case 'PageUp':
-				delta = -this.props.lines * this.props.delta;
+				pos = Math.max(pos - lines * delta, pos % delta);
 				break;
 
 			case 'PageDown':
-				delta = this.props.lines * this.props.delta;
+				pos += Math.min(lines, Math.floor((maxPos - pos) / delta)) * delta;
+				break;
+
+			case 'Home':
+				pos = event.ctrlKey ? 0 : pos - pos % delta;
+				break;
+
+			case 'End':
+				pos = event.ctrlKey ? maxPos : Math.min(maxPos, (Math.floor(pos / delta) + 1) * delta - 1);
 				break;
 
 			default:
@@ -89,12 +114,8 @@ module.exports = React.createClass({
 
 		event.preventDefault();
 
-		var position = this.state.position;
-
-		if ((delta > 0 && position < this.state.data.length - delta) || (delta < 0 && position >= -delta)) {
-			this.setState({
-				position: position += delta
-			});
-		}
+		this.setState({
+			position: pos
+		});
 	}
 });

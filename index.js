@@ -56,12 +56,13 @@
                 },
                 onScroll: function (event) {
                     var newStart = Math.floor(event.target.scrollTop / HEIGHT);
-                    console.time('scroll');
-                    if (newStart !== this.state.start) {
-                        this.setState({ start: newStart }, function () {
-                            console.timeEnd('scroll');
-                        });
+                    if (newStart === this.state.start) {
+                        return;
                     }
+                    console.time('scroll');
+                    this.setState({ start: newStart }, function () {
+                        console.timeEnd('scroll');
+                    });
                 },
                 componentWillReceiveProps: function (props) {
                     if (!props.data) {
@@ -71,7 +72,7 @@
                     if (line < start) {
                         this.setState({ start: line });
                     } else if (line >= end) {
-                        this.setState({ start: start + (line - end) });
+                        this.setState({ start: start + (line - end) + 1 });
                     }
                 },
                 render: function () {
@@ -106,6 +107,7 @@
                     return React.DOM.div({
                         className: 'binary-wrapper',
                         style: { height: this.props.lines * HEIGHT },
+                        scrollTop: this.state.start * HEIGHT,
                         onScroll: this.onScroll
                     }, React.DOM.table({
                         className: 'binary',
@@ -158,37 +160,53 @@
                     }));
                 },
                 onKeyDown: function (event) {
-                    if (!this.state.data) {
+                    var data = this.state.data;
+                    if (!data) {
                         return;
                     }
-                    var delta;
+                    var delta = this.props.delta, lines = this.props.lines, pos = this.state.position, maxPos = data.length - 1;
                     switch (event.key) {
                     case 'ArrowUp':
-                        delta = -this.props.delta;
+                        pos -= delta;
+                        if (pos < 0) {
+                            return;
+                        }
                         break;
                     case 'ArrowDown':
-                        delta = this.props.delta;
+                        pos += delta;
+                        if (pos > maxPos) {
+                            return;
+                        }
                         break;
                     case 'ArrowLeft':
-                        delta = -1;
+                        pos--;
+                        if (pos < 0) {
+                            return;
+                        }
                         break;
                     case 'ArrowRight':
-                        delta = 1;
+                        pos++;
+                        if (pos > maxPos) {
+                            return;
+                        }
                         break;
                     case 'PageUp':
-                        delta = -this.props.lines * this.props.delta;
+                        pos = Math.max(pos - lines * delta, pos % delta);
                         break;
                     case 'PageDown':
-                        delta = this.props.lines * this.props.delta;
+                        pos += Math.min(lines, Math.floor((maxPos - pos) / delta)) * delta;
+                        break;
+                    case 'Home':
+                        pos = event.ctrlKey ? 0 : pos - pos % delta;
+                        break;
+                    case 'End':
+                        pos = event.ctrlKey ? maxPos : Math.min(maxPos, (Math.floor(pos / delta) + 1) * delta - 1);
                         break;
                     default:
                         return;
                     }
                     event.preventDefault();
-                    var position = this.state.position;
-                    if (delta > 0 && position < this.state.data.length - delta || delta < 0 && position >= -delta) {
-                        this.setState({ position: position += delta });
-                    }
+                    this.setState({ position: pos });
                 }
             });
         },

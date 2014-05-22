@@ -16,10 +16,13 @@ module.exports = React.createClass({
 
 	onScroll: function (event) {
 		var newStart = Math.floor(event.target.scrollTop / HEIGHT);
-		console.time('scroll');
-		if (newStart !== this.state.start) {
-			this.setState({start: newStart}, () => { console.timeEnd('scroll') });
+		
+		if (newStart === this.state.start) {
+			return;
 		}
+
+		console.time('scroll');
+		this.setState({start: newStart}, () => { console.timeEnd('scroll') });
 	},
 
 	componentWillReceiveProps: function (props) {
@@ -40,7 +43,7 @@ module.exports = React.createClass({
 		} else
 		if (line >= end) {
 			this.setState({
-				start: start + (line - end)
+				start: start + (line - end) + 1
 			});
 		}
 	},
@@ -79,7 +82,7 @@ module.exports = React.createClass({
 			}
 		}
 
-		return <div className="binary-wrapper" style={{height: this.props.lines * HEIGHT}} onScroll={this.onScroll}>
+		return <div className="binary-wrapper" style={{height: this.props.lines * HEIGHT}} scrollTop={this.state.start * HEIGHT} onScroll={this.onScroll}>
 			<table className="binary" cols={delta}>
 				<tbody>{rows}</tbody>
 			</table>
