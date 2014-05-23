@@ -20,9 +20,12 @@ var Tree = module.exports = React.createClass({
 			keys = this.props.keys || Object.keys(obj);
 			
 			if (this.state.visible) {
-				if (keys.length > split) {
+				// calculating optimal step that will produce no more than [split] elements and will be power of 10
+				var step = Math.pow(10, Math.ceil(Math.log(Math.ceil(keys.length / (split * split)) * split) / Math.LN10));
+
+				if (keys.length > step) {
 					for (var i = 0, nextI, title; i < keys.length; i = nextI) {
-						nextI = Math.min(i + split, keys.length);
+						nextI = Math.min(i + step, keys.length);
 						title = keys[i] + '..' + keys[nextI - 1];
 						childNodes.push(<li key={title}><Tree title={title} visible={false} split={split} keys={keys.slice(i, nextI)} object={obj} /></li>);
 					}

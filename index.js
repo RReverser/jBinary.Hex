@@ -221,7 +221,7 @@
                     }), Tree({
                         title: 'Parsed structure',
                         visible: true,
-                        split: 1000,
+                        split: 100,
                         object: this.state.parsed
                     })) : React.DOM.h4({ style: { textAlign: 'center' } }, 'Please load file to see parsed contents.'));
                 },
@@ -287,9 +287,10 @@
                         if (isObject) {
                             keys = this.props.keys || Object.keys(obj);
                             if (this.state.visible) {
-                                if (keys.length > split) {
+                                var step = Math.pow(10, Math.ceil(Math.log(Math.ceil(keys.length / (split * split)) * split) / Math.LN10));
+                                if (keys.length > step) {
                                     for (var i = 0, nextI, title; i < keys.length; i = nextI) {
-                                        nextI = Math.min(i + split, keys.length);
+                                        nextI = Math.min(i + step, keys.length);
                                         title = keys[i] + '..' + keys[nextI - 1];
                                         childNodes.push(React.DOM.li({ key: title }, Tree({
                                             title: title,
