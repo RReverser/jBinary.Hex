@@ -38,7 +38,7 @@ var Tree = module.exports = React.createClass({
 		return <div className="tree-node">
 			<h5 onClick={this.toggle} className={keys.length ? 'togglable togglable-' + (this.state.visible ? 'down' : 'up') : ''}>
 				{this.props.title}
-				: {isObject ? obj.constructor.name : typeof obj}{obj && typeof obj.length === 'number' ? '[' + obj.length + ']' : ''}
+				: {isObject ? obj.constructor.name : typeof obj}{obj && typeof obj.length === 'number' ? '[' + (isObject ? keys : obj).length + ']' : ''}
 				{!isObject ? ' = ' + JSON.stringify(obj) : ''}
 			</h5>
 			<ul style={this.state.visible ? {} : {display: 'none'}}>

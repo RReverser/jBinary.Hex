@@ -315,7 +315,7 @@
                         return React.DOM.div({ className: 'tree-node' }, React.DOM.h5({
                             onClick: this.toggle,
                             className: keys.length ? 'togglable togglable-' + (this.state.visible ? 'down' : 'up') : ''
-                        }, this.props.title, ': ', isObject ? obj.constructor.name : typeof obj, obj && typeof obj.length === 'number' ? '[' + obj.length + ']' : '', !isObject ? ' = ' + JSON.stringify(obj) : ''), React.DOM.ul({ style: this.state.visible ? {} : { display: 'none' } }, childNodes));
+                        }, this.props.title, ': ', isObject ? obj.constructor.name : typeof obj, obj && typeof obj.length === 'number' ? '[' + (isObject ? keys : obj).length + ']' : '', !isObject ? ' = ' + JSON.stringify(obj) : ''), React.DOM.ul({ style: this.state.visible ? {} : { display: 'none' } }, childNodes));
                     },
                     toggle: function () {
                         this.setState({ visible: !this.state.visible });
