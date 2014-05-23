@@ -13,7 +13,8 @@ module.exports = React.createClass({
 			"\n"+
 			"    File: {\n" +
 			"        byte: 'uint8',\n" +
-			"        str: ['string', 10]\n" +
+			"        str: ['string', 10],\n" +
+			"        other: ['array', 'uint8']\n" +
 			"    }\n" +
 			"};"
 		}</div>;
