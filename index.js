@@ -281,7 +281,7 @@
                         return { visible: true };
                     },
                     render: function () {
-                        var obj = this.props.object, isObject = typeof obj === 'object' && obj !== null, isArrayLike = typeof obj.length === 'number', childNodes = isObject && (!isArrayLike || obj.length < 256) ? Object.keys(obj).map(function (key) {
+                        var obj = this.props.object, isObject = typeof obj === 'object' && obj !== null, isArrayLike = isObject && typeof obj.length === 'number', childNodes = isObject && (!isArrayLike || obj.length < 256) ? Object.keys(obj).map(function (key) {
                                 return React.DOM.li({ key: key }, Tree({
                                     title: key,
                                     object: obj[key]
