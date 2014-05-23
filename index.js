@@ -14,7 +14,38 @@
     _require.cache = [];
     _require.modules = [
         function (module, exports) {
-            var ChunkItem = _require(1);
+            module.exports = React.createClass({
+                displayName: 'Ace',
+                render: function () {
+                    return React.DOM.div({ className: 'ace-editor' }, 'var jDataView = require(\'jdataview\');\n' + 'var jBinary = require(\'jbinary\');\n' + '\n' + 'module.exports = {\n' + '    \'jBinary.all\': \'File\',\n' + '\n' + '    File: {\n' + '        byte: \'uint8\',\n' + '        str: [\'string\', 10]\n' + '    }\n' + '};');
+                },
+                componentDidMount: function () {
+                    var editor = ace.edit(this.getDOMNode()), session = editor.getSession();
+                    this.setState({
+                        editor: editor,
+                        session: session,
+                        theme: this.props.theme,
+                        mode: this.props.mode
+                    });
+                    this.props.sessionWasCreated(session);
+                },
+                componentWillUnmount: function () {
+                    this.state.editor.destroy();
+                },
+                componentDidUpdate: function (prevProps, prevState) {
+                    var state = this.state;
+                    prevState = prevState || {};
+                    if (prevState.theme !== state.theme) {
+                        state.editor.setTheme(state.theme);
+                    }
+                    if (prevState.mode !== state.mode) {
+                        state.session.setMode(state.mode);
+                    }
+                }
+            });
+        },
+        function (module, exports) {
+            var ChunkItem = _require(2);
             module.exports = React.createClass({
                 displayName: 'Chunk',
                 shouldComponentUpdate: function (props) {
@@ -50,8 +81,8 @@
             };
         },
         function (module, exports) {
-            var Chunk = _require(0);
-            var toHex = _require(5).toHex;
+            var Chunk = _require(1);
+            var toHex = _require(7).toHex;
             var HEIGHT = 20;
             module.exports = React.createClass({
                 displayName: 'DataTable',
@@ -121,8 +152,10 @@
             });
         },
         function (module, exports) {
-            var DataTable = _require(2);
-            var toHex = _require(5).toHex;
+            var DataTable = _require(3);
+            var Ace = _require(0);
+            var Tree = _require(5);
+            var toHex = _require(7).toHex;
             module.exports = React.createClass({
                 displayName: 'Editor',
                 getInitialState: function () {
@@ -139,10 +172,26 @@
                     this.setState(this.getInitialState());
                     jBinary.load(event.target.files[0]).then(function (binary) {
                         this.setState({
+                            binary: binary,
                             data: binary.read('blob'),
                             position: 0
                         });
+                        this.parse();
                     }.bind(this));
+                },
+                sessionWasCreated: function (session) {
+                    this.session = session;
+                },
+                innerRequire: function (name) {
+                    return {
+                        jdataview: jDataView,
+                        jbinary: jBinary
+                    }[name];
+                },
+                parse: function () {
+                    var module = { exports: {} };
+                    new Function('require', 'module', 'exports', this.session.getValue())(this.innerRequire, module, module.exports);
+                    this.setState({ parsed: this.state.binary.as(module.exports).readAll() });
                 },
                 render: function () {
                     var data = this.state.data, position = this.state.position;
@@ -155,14 +204,24 @@
                         onChange: this.handleFile
                     }), React.DOM.div({
                         className: 'position',
-                        style: { display: data ? 'block' : 'none' }
+                        style: data ? {} : { display: 'none' }
                     }, 'Position:' + ' ' + '0x', React.DOM.span(null, toHex(position, 8)), '(', React.DOM.span(null, position), ')')), DataTable({
                         data: data,
                         position: position,
                         delta: this.props.delta,
                         lines: this.props.lines,
                         onItemClick: this.handleItemClick
-                    }));
+                    }), Ace({
+                        mode: 'ace/mode/javascript',
+                        sessionWasCreated: this.sessionWasCreated
+                    }), data ? React.DOM.div({ className: 'tree' }, React.DOM.input({
+                        type: 'button',
+                        onClick: this.parse,
+                        value: 'Refresh'
+                    }), Tree({
+                        title: 'Parsed structure',
+                        object: this.state.parsed
+                    })) : React.DOM.h4({ style: { textAlign: 'center' } }, 'Please load file to see parsed contents.'));
                 },
                 onKeyDown: function (event) {
                     var data = this.state.data;
@@ -216,11 +275,36 @@
             });
         },
         function (module, exports) {
-            var Editor = _require(3);
-            React.renderComponent(Editor({
-                delta: 32,
-                lines: 20
-            }), document.body);
+            var Tree = module.exports = React.createClass({
+                    displayName: 'Tree',
+                    getInitialState: function () {
+                        return { visible: true };
+                    },
+                    render: function () {
+                        var obj = this.props.object, isObject = typeof obj === 'object' && obj !== null, childNodes = isObject && (!('length' in obj) || obj.length < 256) ? Object.keys(obj).map(function (key) {
+                                return React.DOM.li({ key: key }, Tree({
+                                    title: key,
+                                    object: obj[key]
+                                }));
+                            }) : [], className = childNodes.length ? 'togglable togglable-' + (this.state.visible ? 'down' : 'up') : '';
+                        return React.DOM.div({ className: 'tree-node' }, React.DOM.h5({
+                            onClick: this.toggle,
+                            className: className
+                        }, this.props.title, ': ', isObject ? obj.constructor.name : typeof obj, !isObject ? ' = ' + String(JSON.stringify(obj)) : ''), React.DOM.ul({ style: this.state.visible ? {} : { display: 'none' } }, childNodes));
+                    },
+                    toggle: function () {
+                        this.setState({ visible: !this.state.visible });
+                    }
+                });
+        },
+        function (module, exports) {
+            var Editor = _require(4);
+            addEventListener('DOMContentLoaded', function () {
+                React.renderComponent(Editor({
+                    delta: 32,
+                    lines: 20
+                }), document.body);
+            });
         },
         function (module, exports) {
             exports.toHex = function (number, length) {
@@ -232,5 +316,5 @@
             };
         }
     ];
-    _require(4);
+    _require(6);
 }());

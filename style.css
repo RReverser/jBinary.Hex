@@ -18,7 +18,7 @@ body {
 	font-family: Courier, monospace;
 	font-size: 13px;
 	width: 100%;
-	overflow-y: scroll;
+	overflow-y: auto;
 	background-color: #ccc;
 	border-bottom: 1px solid #777;
 }
@@ -79,4 +79,50 @@ body {
 .binary .chargroup {
 	white-space: pre;
 	width: 320px;
+}
+
+.ace-editor, .tree {
+	width: 50%;
+	height: 300px;
+	float: left;
+	overflow-y: auto;
+	border-bottom: 1px solid #777;
+	box-sizing: border-box;
+}
+
+.tree {
+	padding-left: 4pt;
+}
+
+.ace-editor {
+	border-right: 1px solid #777;
+}
+
+.tree {
+	font-family: "Helvetica Neue";
+}
+
+.tree h5 {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.togglable {
+	color: #D78770;
+	cursor: pointer;
+}
+
+.togglable-down::after, .togglable-up::after {
+	font-size: 8px;
+	margin-left: 0.5em;
+}
+
+.togglable-down::after {
+	content: "▼";
+	display: inline-block;
+}
+
+.togglable-up::after {
+	content: "▶";
+	display: inline-block;
 }

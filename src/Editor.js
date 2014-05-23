@@ -1,6 +1,8 @@
 /** @jsx React.DOM */
 
 var DataTable = require('./DataTable');
+var Ace = require('./Ace');
+var Tree = require('./Tree');
 var toHex = require('./utils').toHex;
 
 module.exports = React.createClass({
@@ -23,12 +25,36 @@ module.exports = React.createClass({
 
 		jBinary.load(event.target.files[0]).then(binary => {
 			this.setState({
+				binary: binary,
 				data: binary.read('blob'),
 				position: 0
 			});
+
+			this.parse();
 		});
 	},
-	
+
+	sessionWasCreated: function (session) {
+		this.session = session;
+	},
+
+	innerRequire: function (name) {
+		return {
+			jdataview: jDataView,
+			jbinary: jBinary
+		}[name];
+	},
+
+	parse: function () {
+		var module = {exports: {}};
+
+		new Function('require', 'module', 'exports', this.session.getValue())(this.innerRequire, module, module.exports);
+
+		this.setState({
+			parsed: this.state.binary.as(module.exports).readAll()
+		});
+	},
+
 	render: function () {
 		var data = this.state.data,
 			position = this.state.position;
@@ -36,7 +62,7 @@ module.exports = React.createClass({
 		return <div className="editor" tabIndex={0} onKeyDown={this.onKeyDown}>
 			<div className="toolbar">
 				<input type="file" onChange={this.handleFile} />
-				<div className="position" style={{display: data ? 'block' : 'none'}}>
+				<div className="position" style={data ? {} : {display: 'none'}}>
 					Position:
 					0x<span>{toHex(position, 8)}</span>
 					(<span>{position}</span>)
@@ -47,8 +73,16 @@ module.exports = React.createClass({
 				position={position}
 				delta={this.props.delta}
 				lines={this.props.lines}
-				onItemClick={this.handleItemClick}
-			/>
+				onItemClick={this.handleItemClick} />
+			<Ace mode="ace/mode/javascript" sessionWasCreated={this.sessionWasCreated} />
+			{
+				data
+				? <div className="tree">
+					<input type="button" onClick={this.parse} value="Refresh" />
+					<Tree title="Parsed structure" object={this.state.parsed} />
+				</div>
+				: <h4 style={{textAlign: 'center'}}>Please load file to see parsed contents.</h4>
+			}
 		</div>;
 	},
 
