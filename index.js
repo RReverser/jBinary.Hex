@@ -281,7 +281,7 @@
                         return { visible: true };
                     },
                     render: function () {
-                        var obj = this.props.object, isObject = typeof obj === 'object' && obj !== null, childNodes = isObject && (!('length' in obj) || obj.length < 256) ? Object.keys(obj).map(function (key) {
+                        var obj = this.props.object, isObject = typeof obj === 'object' && obj !== null, isArrayLike = typeof obj.length === 'number', childNodes = isObject && (!isArrayLike || obj.length < 256) ? Object.keys(obj).map(function (key) {
                                 return React.DOM.li({ key: key }, Tree({
                                     title: key,
                                     object: obj[key]
@@ -290,7 +290,7 @@
                         return React.DOM.div({ className: 'tree-node' }, React.DOM.h5({
                             onClick: this.toggle,
                             className: className
-                        }, this.props.title, ': ', isObject ? obj.constructor.name : typeof obj, !isObject ? ' = ' + String(JSON.stringify(obj)) : ''), React.DOM.ul({ style: this.state.visible ? {} : { display: 'none' } }, childNodes));
+                        }, this.props.title, ': ', isObject ? obj.constructor.name + (isArrayLike ? '[' + obj.length + ']' : '') : typeof obj, !isObject ? ' = ' + String(JSON.stringify(obj)) : ''), React.DOM.ul({ style: this.state.visible ? {} : { display: 'none' } }, childNodes));
                     },
                     toggle: function () {
                         this.setState({ visible: !this.state.visible });
