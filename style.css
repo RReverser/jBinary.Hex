@@ -92,6 +92,7 @@ body {
 
 .tree {
 	padding-left: 4pt;
+	word-wrap: break-word;
 }
 
 .ace-editor {

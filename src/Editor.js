@@ -79,7 +79,7 @@ module.exports = React.createClass({
 				data
 				? <div className="tree">
 					<input type="button" onClick={this.parse} value="Refresh" />
-					<Tree title="Parsed structure" visible={true} split={100} object={this.state.parsed} />
+					<Tree title="Parsed structure" alwaysVisible={true} split={100} object={this.state.parsed} />
 				</div>
 				: <h4 style={{textAlign: 'center'}}>Please load file to see parsed contents.</h4>
 			}

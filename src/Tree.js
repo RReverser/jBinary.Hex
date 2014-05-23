@@ -5,7 +5,7 @@ var Tree = module.exports = React.createClass({
 
 	getInitialState: function () {
 		return {
-			visible: this.props.visible
+			visible: this.props.alwaysVisible
 		};
 	},
 
@@ -39,7 +39,7 @@ var Tree = module.exports = React.createClass({
 		}
 
 		return <div className="tree-node">
-			<h5 onClick={this.toggle} className={keys.length ? 'togglable togglable-' + (this.state.visible ? 'down' : 'up') : ''}>
+			<h5 onClick={this.toggle} className={!this.props.alwaysVisible && keys.length ? 'togglable togglable-' + (this.state.visible ? 'down' : 'up') : ''}>
 				{this.props.title}
 				: {isObject ? obj.constructor.name : typeof obj}{obj && typeof obj.length === 'number' ? '[' + (isObject ? keys : obj).length + ']' : ''}
 				{!isObject ? ' = ' + JSON.stringify(obj) : ''}

@@ -220,7 +220,7 @@
                         value: 'Refresh'
                     }), Tree({
                         title: 'Parsed structure',
-                        visible: true,
+                        alwaysVisible: true,
                         split: 100,
                         object: this.state.parsed
                     })) : React.DOM.h4({ style: { textAlign: 'center' } }, 'Please load file to see parsed contents.'));
@@ -280,7 +280,7 @@
             var Tree = module.exports = React.createClass({
                     displayName: 'Tree',
                     getInitialState: function () {
-                        return { visible: this.props.visible };
+                        return { visible: this.props.alwaysVisible };
                     },
                     render: function () {
                         var obj = this.props.object, isObject = typeof obj === 'object' && obj !== null, split = this.props.split, keys = [], childNodes = [];
@@ -315,7 +315,7 @@
                         }
                         return React.DOM.div({ className: 'tree-node' }, React.DOM.h5({
                             onClick: this.toggle,
-                            className: keys.length ? 'togglable togglable-' + (this.state.visible ? 'down' : 'up') : ''
+                            className: !this.props.alwaysVisible && keys.length ? 'togglable togglable-' + (this.state.visible ? 'down' : 'up') : ''
                         }, this.props.title, ': ', isObject ? obj.constructor.name : typeof obj, obj && typeof obj.length === 'number' ? '[' + (isObject ? keys : obj).length + ']' : '', !isObject ? ' = ' + JSON.stringify(obj) : ''), React.DOM.ul({ style: this.state.visible ? {} : { display: 'none' } }, childNodes));
                     },
                     toggle: function () {
