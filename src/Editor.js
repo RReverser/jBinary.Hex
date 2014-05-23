@@ -15,6 +15,7 @@ module.exports = React.createClass({
 
 	handleItemClick: function (event) {
 		this.setState({position: Number(event.target.dataset.offset)});
+		this.getDOMNode().focus();
 	},
 	
 	handleFile: function (event) {
