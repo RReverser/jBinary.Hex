@@ -3,7 +3,6 @@ body {
 }
 
 .toolbar {
-	position: fixed;
 	width: 100%;
 	height: 20pt;
 	background: #fff;
@@ -18,9 +17,6 @@ body {
 .binary-wrapper {
 	font-family: Courier, monospace;
 	font-size: 13px;
-	position: absolute;
-	top: 20pt;
-	bottom: 0;
 	width: 100%;
 	overflow-y: scroll;
 	background-color: #ccc;
