@@ -126,7 +126,7 @@
                                     return toHex(data, 2);
                                 },
                                 key: 'hex',
-                                onItemClick: this.props.onItemClick
+                                onItemClick: this.handleItemClick
                             }), Chunk({
                                 data: data,
                                 position: position,
@@ -136,19 +136,74 @@
                                     return data <= 32 ? ' ' : String.fromCharCode(data);
                                 },
                                 key: 'char',
-                                onItemClick: this.props.onItemClick
+                                onItemClick: this.handleItemClick
                             })));
                         }
                     }
                     return React.DOM.div({
                         className: 'binary-wrapper',
+                        tabIndex: 0,
                         style: { height: this.props.lines * HEIGHT },
                         scrollTop: this.state.start * HEIGHT,
+                        onKeyDown: this.onKeyDown,
                         onScroll: this.onScroll
-                    }, React.DOM.table({
+                    }, React.DOM.div({ className: 'scrollable-wrapper' }, React.DOM.div({ style: { height: totalLines * HEIGHT } })), React.DOM.table({
                         className: 'binary',
                         cols: delta
-                    }, React.DOM.tbody(null, rows)), React.DOM.div({ className: 'scrollable-wrapper' }, React.DOM.div({ style: { height: totalLines * HEIGHT } })));
+                    }, React.DOM.tbody(null, rows)));
+                },
+                handleItemClick: function (event) {
+                    this.props.setPosition(event.target.dataset.offset);
+                    this.getDOMNode().focus();
+                },
+                onKeyDown: function (event) {
+                    var data = this.props.data;
+                    if (!data) {
+                        return;
+                    }
+                    var delta = this.props.delta, lines = this.props.lines, pos = this.props.position, maxPos = data.length - 1;
+                    switch (event.key) {
+                    case 'ArrowUp':
+                        pos -= delta;
+                        if (pos < 0) {
+                            return;
+                        }
+                        break;
+                    case 'ArrowDown':
+                        pos += delta;
+                        if (pos > maxPos) {
+                            return;
+                        }
+                        break;
+                    case 'ArrowLeft':
+                        pos--;
+                        if (pos < 0) {
+                            return;
+                        }
+                        break;
+                    case 'ArrowRight':
+                        pos++;
+                        if (pos > maxPos) {
+                            return;
+                        }
+                        break;
+                    case 'PageUp':
+                        pos = Math.max(pos - lines * delta, pos % delta);
+                        break;
+                    case 'PageDown':
+                        pos += Math.min(lines, Math.floor((maxPos - pos) / delta)) * delta;
+                        break;
+                    case 'Home':
+                        pos = event.ctrlKey ? 0 : pos - pos % delta;
+                        break;
+                    case 'End':
+                        pos = event.ctrlKey ? maxPos : Math.min(maxPos, (Math.floor(pos / delta) + 1) * delta - 1);
+                        break;
+                    default:
+                        return;
+                    }
+                    event.preventDefault();
+                    this.props.setPosition(pos);
                 }
             });
         },
@@ -171,9 +226,11 @@
                         status: 'Please load file to see parsed contents.'
                     };
                 },
-                handleItemClick: function (event) {
-                    this.setState({ position: Number(event.target.dataset.offset) });
-                    this.getDOMNode().focus();
+                setPosition: function (position) {
+                    this.setState({ position: Number(position) });
+                },
+                handlePosition: function (event) {
+                    this.setPosition(event.target.value);
                 },
                 handleFile: function (event) {
                     var file = event.target.files[0];
@@ -216,26 +273,23 @@
                 },
                 render: function () {
                     var data = this.state.data, parsed = this.state.parsed, position = this.state.position;
-                    return React.DOM.div({
-                        className: 'editor',
-                        tabIndex: 0,
-                        onKeyDown: this.onKeyDown
-                    }, React.DOM.div({ className: 'toolbar' }, React.DOM.form(null, React.DOM.input({
+                    return React.DOM.div({ className: 'editor' }, React.DOM.form({ className: 'toolbar' }, React.DOM.input({
                         type: 'file',
                         onChange: this.handleFile
                     }), React.DOM.input({
                         type: 'reset',
                         onClick: this.cleanUp,
                         style: ifStyle(data)
-                    })), React.DOM.div({
+                    }), React.DOM.div({
                         className: 'position',
                         style: ifStyle(data)
                     }, 'Position:' + ' ' + '0x', React.DOM.span(null, toHex(position, 8)), '(', React.DOM.span(null, position), ')')), DataTable({
                         data: data,
                         position: position,
+                        setPosition: this.setPosition,
                         delta: this.props.delta,
                         lines: this.props.lines,
-                        onItemClick: this.handleItemClick
+                        onKeyDown: this.onKeyDown
                     }), Ace({
                         mode: 'ace/mode/javascript',
                         sessionWasCreated: this.sessionWasCreated,
@@ -251,55 +305,6 @@
                         split: 100,
                         object: parsed
                     }) : React.DOM.h4({ style: { textAlign: 'center' } }, this.state.status)));
-                },
-                onKeyDown: function (event) {
-                    var data = this.state.data;
-                    if (!data) {
-                        return;
-                    }
-                    var delta = this.props.delta, lines = this.props.lines, pos = this.state.position, maxPos = data.length - 1;
-                    switch (event.key) {
-                    case 'ArrowUp':
-                        pos -= delta;
-                        if (pos < 0) {
-                            return;
-                        }
-                        break;
-                    case 'ArrowDown':
-                        pos += delta;
-                        if (pos > maxPos) {
-                            return;
-                        }
-                        break;
-                    case 'ArrowLeft':
-                        pos--;
-                        if (pos < 0) {
-                            return;
-                        }
-                        break;
-                    case 'ArrowRight':
-                        pos++;
-                        if (pos > maxPos) {
-                            return;
-                        }
-                        break;
-                    case 'PageUp':
-                        pos = Math.max(pos - lines * delta, pos % delta);
-                        break;
-                    case 'PageDown':
-                        pos += Math.min(lines, Math.floor((maxPos - pos) / delta)) * delta;
-                        break;
-                    case 'Home':
-                        pos = event.ctrlKey ? 0 : pos - pos % delta;
-                        break;
-                    case 'End':
-                        pos = event.ctrlKey ? maxPos : Math.min(maxPos, (Math.floor(pos / delta) + 1) * delta - 1);
-                        break;
-                    default:
-                        return;
-                    }
-                    event.preventDefault();
-                    this.setState({ position: pos });
                 }
             });
         },
