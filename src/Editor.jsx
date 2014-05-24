@@ -83,8 +83,10 @@ module.exports = React.createClass({
 
 		return <div className="editor" tabIndex={0} onKeyDown={this.onKeyDown}>
 			<div className="toolbar">
-				<input type="file" onChange={this.handleFile} />
-				<input type="button" onClick={this.cleanUp} value="Unload file" style={ifStyle(data)} />
+				<form>
+					<input type="file" onChange={this.handleFile} />
+					<input type="reset" onClick={this.cleanUp} style={ifStyle(data)} />
+				</form>
 				<div className="position" style={ifStyle(data)}>
 					Position:
 					0x<span>{toHex(position, 8)}</span>

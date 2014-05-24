@@ -148,7 +148,7 @@
                     }, React.DOM.table({
                         className: 'binary',
                         cols: delta
-                    }, React.DOM.tbody(null, rows)), React.DOM.div({ style: { height: totalLines * HEIGHT } }));
+                    }, React.DOM.tbody(null, rows)), React.DOM.div({ className: 'scrollable-wrapper' }, React.DOM.div({ style: { height: totalLines * HEIGHT } })));
                 }
             });
         },
@@ -220,15 +220,14 @@
                         className: 'editor',
                         tabIndex: 0,
                         onKeyDown: this.onKeyDown
-                    }, React.DOM.div({ className: 'toolbar' }, React.DOM.input({
+                    }, React.DOM.div({ className: 'toolbar' }, React.DOM.form(null, React.DOM.input({
                         type: 'file',
                         onChange: this.handleFile
                     }), React.DOM.input({
-                        type: 'button',
+                        type: 'reset',
                         onClick: this.cleanUp,
-                        value: 'Unload file',
                         style: ifStyle(data)
-                    }), React.DOM.div({
+                    })), React.DOM.div({
                         className: 'position',
                         style: ifStyle(data)
                     }, 'Position:' + ' ' + '0x', React.DOM.span(null, toHex(position, 8)), '(', React.DOM.span(null, position), ')')), DataTable({

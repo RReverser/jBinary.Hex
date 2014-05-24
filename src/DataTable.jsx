@@ -84,7 +84,7 @@ module.exports = React.createClass({
 			<table className="binary" cols={delta}>
 				<tbody>{rows}</tbody>
 			</table>
-			<div style={{height: totalLines * HEIGHT}} />
+			<div className="scrollable-wrapper"><div style={{height: totalLines * HEIGHT}} /></div>
 		</div>;
 	}
 });
