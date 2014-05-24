@@ -56,6 +56,9 @@
                     return binary.as(module.exports).readAll();
                 });
             };
+            exports.cleanUp = function () {
+                whenBinary = undefined;
+            };
         }
     ];
     _require(0);

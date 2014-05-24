@@ -156,41 +156,63 @@
             var DataTable = _require(3);
             var Ace = _require(0);
             var Tree = _require(5);
-            var toHex = _require(8).toHex;
             var bg = _require(6);
+            var utils = _require(8);
+            var toHex = utils.toHex;
+            var ifStyle = utils.ifStyle;
             module.exports = React.createClass({
                 displayName: 'Editor',
                 getInitialState: function () {
                     return {
                         data: null,
                         parsed: null,
-                        position: 0
+                        position: 0,
+                        isParsing: false,
+                        status: 'Please load file to see parsed contents.'
                     };
                 },
                 handleItemClick: function (event) {
                     this.setState({ position: Number(event.target.dataset.offset) });
                     this.getDOMNode().focus();
                 },
-                handleBgError: function (error) {
-                    console.error(error);
-                },
                 handleFile: function (event) {
-                    bg('handleFile', event.target.files[0]).then(function (data) {
+                    var file = event.target.files[0];
+                    if (!file) {
+                        return;
+                    }
+                    bg('handleFile', file).then(function (data) {
                         this.setState({
                             data: data,
                             position: 0
                         });
-                    }.bind(this), this.handleBgError);
+                    }.bind(this));
                     this.parse();
                 },
                 sessionWasCreated: function (session) {
                     this.session = session;
                 },
+                cleanUp: function () {
+                    bg('cleanUp');
+                    this.setState(this.getInitialState());
+                },
                 parse: function () {
-                    this.setState({ parsed: null });
+                    this.setState({
+                        parsed: null,
+                        isParsing: true,
+                        status: 'Parsing...'
+                    });
                     bg('parse', this.session.getValue()).then(function (parsed) {
-                        this.setState({ parsed: parsed });
-                    }.bind(this), this.handleBgError);
+                        this.setState({
+                            parsed: parsed,
+                            isParsing: false,
+                            status: ''
+                        });
+                    }.bind(this), function (error) {
+                        this.setState({
+                            status: String(error),
+                            isParsing: false
+                        });
+                    }.bind(this));
                 },
                 render: function () {
                     var data = this.state.data, parsed = this.state.parsed, position = this.state.position;
@@ -201,9 +223,14 @@
                     }, React.DOM.div({ className: 'toolbar' }, React.DOM.input({
                         type: 'file',
                         onChange: this.handleFile
+                    }), React.DOM.input({
+                        type: 'button',
+                        onClick: this.cleanUp,
+                        value: 'Unload file',
+                        style: ifStyle(data)
                     }), React.DOM.div({
                         className: 'position',
-                        style: data ? {} : { display: 'none' }
+                        style: ifStyle(data)
                     }, 'Position:' + ' ' + '0x', React.DOM.span(null, toHex(position, 8)), '(', React.DOM.span(null, position), ')')), DataTable({
                         data: data,
                         position: position,
@@ -214,16 +241,17 @@
                         mode: 'ace/mode/javascript',
                         sessionWasCreated: this.sessionWasCreated,
                         initialCode: 'var jDataView = require(\'jdataview\');\n' + 'var jBinary = require(\'jbinary\');\n' + '\n' + 'module.exports = {\n' + '    \'jBinary.all\': \'File\',\n' + '\n' + '    File: {\n' + '        byte: \'uint8\',\n' + '        str: [\'string\', 10],\n' + '        other: [\'array\', \'uint8\']\n' + '    }\n' + '};'
-                    }), parsed ? React.DOM.div({ className: 'tree' }, React.DOM.input({
+                    }), React.DOM.div({ className: 'tree' }, React.DOM.input({
                         type: 'button',
                         onClick: this.parse,
-                        value: 'Refresh'
-                    }), Tree({
+                        value: 'Refresh',
+                        style: ifStyle(data && !this.state.isParsing)
+                    }), parsed ? Tree({
                         title: 'Parsed structure',
                         alwaysVisible: true,
                         split: 100,
                         object: parsed
-                    })) : React.DOM.h4({ style: { textAlign: 'center' } }, data ? 'Parsing...' : 'Please load file to see parsed contents.'));
+                    }) : React.DOM.h4({ style: { textAlign: 'center' } }, this.state.status)));
                 },
                 onKeyDown: function (event) {
                     var data = this.state.data;
@@ -277,6 +305,7 @@
             });
         },
         function (module, exports) {
+            var ifStyle = _require(8).ifStyle;
             var Tree = module.exports = React.createClass({
                     displayName: 'Tree',
                     getInitialState: function () {
@@ -316,7 +345,7 @@
                         return React.DOM.div({ className: 'tree-node' }, React.DOM.h5({
                             onClick: !this.props.alwaysVisible && this.toggle,
                             className: !this.props.alwaysVisible && keys.length ? 'togglable togglable-' + (this.state.visible ? 'down' : 'up') : ''
-                        }, this.props.title, ': ', isObject ? obj.constructor.name : typeof obj, obj && typeof obj.length === 'number' ? '[' + (isObject ? keys : obj).length + ']' : '', !isObject ? ' = ' + JSON.stringify(obj) : ''), React.DOM.ul({ style: this.state.visible ? {} : { display: 'none' } }, childNodes));
+                        }, this.props.title, ': ', isObject ? obj.constructor.name : typeof obj, obj && typeof obj.length === 'number' ? '[' + (isObject ? keys : obj).length + ']' : '', !isObject ? ' = ' + JSON.stringify(obj) : ''), React.DOM.ul({ style: ifStyle(this.state.visible) }, childNodes));
                     },
                     toggle: function () {
                         this.setState({ visible: !this.state.visible });
@@ -366,6 +395,9 @@
                     s = '0' + s;
                 }
                 return s;
+            };
+            exports.ifStyle = function (cond) {
+                return cond ? {} : { display: 'none' };
             };
         }
     ];

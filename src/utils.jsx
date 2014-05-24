@@ -7,3 +7,5 @@ exports.toHex = (number, length) => {
 	
 	return s;
 };
+
+exports.ifStyle = cond => cond ? {} : {display: 'none'};

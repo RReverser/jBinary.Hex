@@ -1,3 +1,5 @@
+var ifStyle = require('./utils').ifStyle;
+
 var Tree = module.exports = React.createClass({
 	displayName: 'Tree',
 
@@ -42,7 +44,7 @@ var Tree = module.exports = React.createClass({
 				: {isObject ? obj.constructor.name : typeof obj}{obj && typeof obj.length === 'number' ? '[' + (isObject ? keys : obj).length + ']' : ''}
 				{!isObject ? ' = ' + JSON.stringify(obj) : ''}
 			</h5>
-			<ul style={this.state.visible ? {} : {display: 'none'}}>
+			<ul style={ifStyle(this.state.visible)}>
 				{childNodes}
 			</ul>
 		</div>;

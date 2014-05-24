@@ -1,8 +1,12 @@
 var DataTable = require('./DataTable');
 var Ace = require('./Ace');
 var Tree = require('./Tree');
-var toHex = require('./utils').toHex;
+
 var bg = require('./background');
+
+var utils = require('./utils');
+var toHex = utils.toHex;
+var ifStyle = utils.ifStyle;
 
 module.exports = React.createClass({
 	displayName: 'Editor',
@@ -11,7 +15,9 @@ module.exports = React.createClass({
 		return {
 			data: null,
 			parsed: null,
-			position: 0
+			position: 0,
+			isParsing: false,
+			status: 'Please load file to see parsed contents.'
 		};
 	},
 
@@ -20,17 +26,19 @@ module.exports = React.createClass({
 		this.getDOMNode().focus();
 	},
 
-	handleBgError: function (error) {
-		console.error(error);
-	},
-	
 	handleFile: function (event) {
-		bg('handleFile', event.target.files[0]).then(data => {
+		var file = event.target.files[0];
+
+		if (!file) {
+			return;
+		}
+
+		bg('handleFile', file).then(data => {
 			this.setState({
 				data: data,
 				position: 0
 			});
-		}, this.handleBgError);
+		});
 
 		this.parse();
 	},
@@ -39,14 +47,33 @@ module.exports = React.createClass({
 		this.session = session;
 	},
 
-	parse: function () {
-		this.setState({parsed: null});
+	cleanUp: function () {
+		bg('cleanUp');
+		this.setState(this.getInitialState());
+	},
 
-		bg('parse', this.session.getValue()).then(parsed => {
-			this.setState({
-				parsed: parsed
-			});
-		}, this.handleBgError);
+	parse: function () {
+		this.setState({
+			parsed: null,
+			isParsing: true,
+			status: 'Parsing...'
+		});
+
+		bg('parse', this.session.getValue()).then(
+			parsed => {
+				this.setState({
+					parsed: parsed,
+					isParsing: false,
+					status: ''
+				});
+			},
+			error => {
+				this.setState({
+					status: String(error),
+					isParsing: false
+				});
+			}
+		);
 	},
 
 	render: function () {
@@ -57,7 +84,8 @@ module.exports = React.createClass({
 		return <div className="editor" tabIndex={0} onKeyDown={this.onKeyDown}>
 			<div className="toolbar">
 				<input type="file" onChange={this.handleFile} />
-				<div className="position" style={data ? {} : {display: 'none'}}>
+				<input type="button" onClick={this.cleanUp} value="Unload file" style={ifStyle(data)} />
+				<div className="position" style={ifStyle(data)}>
 					Position:
 					0x<span>{toHex(position, 8)}</span>
 					(<span>{position}</span>)
@@ -83,14 +111,14 @@ module.exports = React.createClass({
 				"    }\n" +
 				"};"
 			} />
-			{
-				parsed
-				? <div className="tree">
-					<input type="button" onClick={this.parse} value="Refresh" />
-					<Tree title="Parsed structure" alwaysVisible={true} split={100} object={parsed} />
-				</div>
-				: <h4 style={{textAlign: 'center'}}>{data ? 'Parsing...' : 'Please load file to see parsed contents.'}</h4>
-			}
+			<div className="tree">
+				<input type="button" onClick={this.parse} value="Refresh" style={ifStyle(data && !this.state.isParsing)} />
+				{
+					parsed
+					? <Tree title="Parsed structure" alwaysVisible={true} split={100} object={parsed} />
+					: <h4 style={{textAlign: 'center'}}>{this.state.status}</h4>
+				}
+			</div>
 		</div>;
 	},
 

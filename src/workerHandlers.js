@@ -21,3 +21,7 @@ exports.parse = sourceCode => {
 
 	return whenBinary.then(binary => binary.as(module.exports).readAll());
 };
+
+exports.cleanUp = () => {
+	whenBinary = undefined;
+};
