@@ -17,7 +17,7 @@
             module.exports = React.createClass({
                 displayName: 'Ace',
                 render: function () {
-                    return React.DOM.div({ className: 'ace-editor' }, 'var jDataView = require(\'jdataview\');\n' + 'var jBinary = require(\'jbinary\');\n' + '\n' + 'module.exports = {\n' + '    \'jBinary.all\': \'File\',\n' + '\n' + '    File: {\n' + '        byte: \'uint8\',\n' + '        str: [\'string\', 10],\n' + '        other: [\'array\', \'uint8\']\n' + '    }\n' + '};');
+                    return React.DOM.div({ className: 'ace-editor' });
                 },
                 componentDidMount: function () {
                     var editor = ace.edit(this.getDOMNode()), session = editor.getSession();
@@ -27,6 +27,7 @@
                         theme: this.props.theme,
                         mode: this.props.mode
                     });
+                    session.setValue(this.props.initialCode);
                     this.props.sessionWasCreated(session);
                 },
                 componentWillUnmount: function () {
@@ -82,7 +83,7 @@
         },
         function (module, exports) {
             var Chunk = _require(1);
-            var toHex = _require(7).toHex;
+            var toHex = _require(8).toHex;
             var HEIGHT = 20;
             module.exports = React.createClass({
                 displayName: 'DataTable',
@@ -155,12 +156,14 @@
             var DataTable = _require(3);
             var Ace = _require(0);
             var Tree = _require(5);
-            var toHex = _require(7).toHex;
+            var toHex = _require(8).toHex;
+            var bg = _require(6);
             module.exports = React.createClass({
                 displayName: 'Editor',
                 getInitialState: function () {
                     return {
                         data: null,
+                        parsed: null,
                         position: 0
                     };
                 },
@@ -168,33 +171,29 @@
                     this.setState({ position: Number(event.target.dataset.offset) });
                     this.getDOMNode().focus();
                 },
+                handleBgError: function (error) {
+                    console.error(error);
+                },
                 handleFile: function (event) {
-                    this.setState(this.getInitialState());
-                    jBinary.load(event.target.files[0]).then(function (binary) {
+                    bg('handleFile', event.target.files[0]).then(function (data) {
                         this.setState({
-                            binary: binary,
-                            data: binary.read('blob'),
+                            data: data,
                             position: 0
                         });
-                        this.parse();
-                    }.bind(this));
+                    }.bind(this), this.handleBgError);
+                    this.parse();
                 },
                 sessionWasCreated: function (session) {
                     this.session = session;
                 },
-                innerRequire: function (name) {
-                    return {
-                        jdataview: jDataView,
-                        jbinary: jBinary
-                    }[name];
-                },
                 parse: function () {
-                    var module = { exports: {} };
-                    new Function('require', 'module', 'exports', this.session.getValue())(this.innerRequire, module, module.exports);
-                    this.setState({ parsed: this.state.binary.as(module.exports).readAll() });
+                    this.setState({ parsed: null });
+                    bg('parse', this.session.getValue()).then(function (parsed) {
+                        this.setState({ parsed: parsed });
+                    }.bind(this), this.handleBgError);
                 },
                 render: function () {
-                    var data = this.state.data, position = this.state.position;
+                    var data = this.state.data, parsed = this.state.parsed, position = this.state.position;
                     return React.DOM.div({
                         className: 'editor',
                         tabIndex: 0,
@@ -213,8 +212,9 @@
                         onItemClick: this.handleItemClick
                     }), Ace({
                         mode: 'ace/mode/javascript',
-                        sessionWasCreated: this.sessionWasCreated
-                    }), data ? React.DOM.div({ className: 'tree' }, React.DOM.input({
+                        sessionWasCreated: this.sessionWasCreated,
+                        initialCode: 'var jDataView = require(\'jdataview\');\n' + 'var jBinary = require(\'jbinary\');\n' + '\n' + 'module.exports = {\n' + '    \'jBinary.all\': \'File\',\n' + '\n' + '    File: {\n' + '        byte: \'uint8\',\n' + '        str: [\'string\', 10],\n' + '        other: [\'array\', \'uint8\']\n' + '    }\n' + '};'
+                    }), parsed ? React.DOM.div({ className: 'tree' }, React.DOM.input({
                         type: 'button',
                         onClick: this.parse,
                         value: 'Refresh'
@@ -222,8 +222,8 @@
                         title: 'Parsed structure',
                         alwaysVisible: true,
                         split: 100,
-                        object: this.state.parsed
-                    })) : React.DOM.h4({ style: { textAlign: 'center' } }, 'Please load file to see parsed contents.'));
+                        object: parsed
+                    })) : React.DOM.h4({ style: { textAlign: 'center' } }, data ? 'Parsing...' : 'Please load file to see parsed contents.'));
                 },
                 onKeyDown: function (event) {
                     var data = this.state.data;
@@ -314,7 +314,7 @@
                             }
                         }
                         return React.DOM.div({ className: 'tree-node' }, React.DOM.h5({
-                            onClick: this.toggle,
+                            onClick: !this.props.alwaysVisible && this.toggle,
                             className: !this.props.alwaysVisible && keys.length ? 'togglable togglable-' + (this.state.visible ? 'down' : 'up') : ''
                         }, this.props.title, ': ', isObject ? obj.constructor.name : typeof obj, obj && typeof obj.length === 'number' ? '[' + (isObject ? keys : obj).length + ']' : '', !isObject ? ' = ' + JSON.stringify(obj) : ''), React.DOM.ul({ style: this.state.visible ? {} : { display: 'none' } }, childNodes));
                     },
@@ -322,6 +322,33 @@
                         this.setState({ visible: !this.state.visible });
                     }
                 });
+        },
+        function (module, exports) {
+            var worker = new Worker('worker.js'), autoIncrement = 0;
+            module.exports = function (type, data) {
+                var id = autoIncrement++;
+                return new Promise(function (resolve, reject) {
+                    worker.addEventListener('message', function handler(event) {
+                        var message = event.data;
+                        if (message.id === id) {
+                            worker.removeEventListener('message', handler);
+                            if ('data' in message) {
+                                resolve(message.data);
+                            } else {
+                                var errorInfo = message.error;
+                                var error = new window[errorInfo.name](errorInfo.message);
+                                error.stack = errorInfo.stack;
+                                reject(error);
+                            }
+                        }
+                    });
+                    worker.postMessage({
+                        id: id,
+                        type: type,
+                        data: data
+                    });
+                });
+            };
         },
         function (module, exports) {
             var Editor = _require(4);
@@ -342,5 +369,5 @@
             };
         }
     ];
-    _require(6);
+    _require(7);
 }());

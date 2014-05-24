@@ -1,5 +1,3 @@
-/** @jsx React.DOM */
-
 var Chunk = require('./Chunk');
 var toHex = require('./utils').toHex;
 

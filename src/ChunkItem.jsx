@@ -1,5 +1,3 @@
-/** @jsx React.DOM */
-
 module.exports = function (props) {
 	var offset = props.offset;
 

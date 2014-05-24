@@ -1,23 +1,8 @@
-/** @jsx React.DOM */
-
 module.exports = React.createClass({
 	displayName: 'Ace',
 
 	render: function () {
-		return <div className="ace-editor">{
-			"var jDataView = require('jdataview');\n" +
-			"var jBinary = require('jbinary');\n" +
-			"\n" +
-			"module.exports = {\n" +
-			"    'jBinary.all': 'File',\n" +
-			"\n"+
-			"    File: {\n" +
-			"        byte: 'uint8',\n" +
-			"        str: ['string', 10],\n" +
-			"        other: ['array', 'uint8']\n" +
-			"    }\n" +
-			"};"
-		}</div>;
+		return <div className="ace-editor" />;
 	},
 
 	componentDidMount: function () {
@@ -30,6 +15,8 @@ module.exports = React.createClass({
 			theme: this.props.theme,
 			mode: this.props.mode
 		});
+
+		session.setValue(this.props.initialCode);
 
 		this.props.sessionWasCreated(session);
 	},

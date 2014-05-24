@@ -1,9 +1,8 @@
-/** @jsx React.DOM */
-
 var DataTable = require('./DataTable');
 var Ace = require('./Ace');
 var Tree = require('./Tree');
 var toHex = require('./utils').toHex;
+var bg = require('./background');
 
 module.exports = React.createClass({
 	displayName: 'Editor',
@@ -11,6 +10,7 @@ module.exports = React.createClass({
 	getInitialState: function () {
 		return {
 			data: null,
+			parsed: null,
 			position: 0
 		};
 	},
@@ -19,44 +19,39 @@ module.exports = React.createClass({
 		this.setState({position: Number(event.target.dataset.offset)});
 		this.getDOMNode().focus();
 	},
+
+	handleBgError: function (error) {
+		console.error(error);
+	},
 	
 	handleFile: function (event) {
-		this.setState(this.getInitialState());
-
-		jBinary.load(event.target.files[0]).then(binary => {
+		bg('handleFile', event.target.files[0]).then(data => {
 			this.setState({
-				binary: binary,
-				data: binary.read('blob'),
+				data: data,
 				position: 0
 			});
+		}, this.handleBgError);
 
-			this.parse();
-		});
+		this.parse();
 	},
 
 	sessionWasCreated: function (session) {
 		this.session = session;
 	},
 
-	innerRequire: function (name) {
-		return {
-			jdataview: jDataView,
-			jbinary: jBinary
-		}[name];
-	},
-
 	parse: function () {
-		var module = {exports: {}};
+		this.setState({parsed: null});
 
-		new Function('require', 'module', 'exports', this.session.getValue())(this.innerRequire, module, module.exports);
-
-		this.setState({
-			parsed: this.state.binary.as(module.exports).readAll()
-		});
+		bg('parse', this.session.getValue()).then(parsed => {
+			this.setState({
+				parsed: parsed
+			});
+		}, this.handleBgError);
 	},
 
 	render: function () {
 		var data = this.state.data,
+			parsed = this.state.parsed,
 			position = this.state.position;
 
 		return <div className="editor" tabIndex={0} onKeyDown={this.onKeyDown}>
@@ -74,14 +69,27 @@ module.exports = React.createClass({
 				delta={this.props.delta}
 				lines={this.props.lines}
 				onItemClick={this.handleItemClick} />
-			<Ace mode="ace/mode/javascript" sessionWasCreated={this.sessionWasCreated} />
+			<Ace mode="ace/mode/javascript" sessionWasCreated={this.sessionWasCreated} initialCode={
+				"var jDataView = require('jdataview');\n" +
+				"var jBinary = require('jbinary');\n" +
+				"\n" +
+				"module.exports = {\n" +
+				"    'jBinary.all': 'File',\n" +
+				"\n"+
+				"    File: {\n" +
+				"        byte: 'uint8',\n" +
+				"        str: ['string', 10],\n" +
+				"        other: ['array', 'uint8']\n" +
+				"    }\n" +
+				"};"
+			} />
 			{
-				data
+				parsed
 				? <div className="tree">
 					<input type="button" onClick={this.parse} value="Refresh" />
-					<Tree title="Parsed structure" alwaysVisible={true} split={100} object={this.state.parsed} />
+					<Tree title="Parsed structure" alwaysVisible={true} split={100} object={parsed} />
 				</div>
-				: <h4 style={{textAlign: 'center'}}>Please load file to see parsed contents.</h4>
+				: <h4 style={{textAlign: 'center'}}>{data ? 'Parsing...' : 'Please load file to see parsed contents.'}</h4>
 			}
 		</div>;
 	},

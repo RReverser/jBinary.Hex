@@ -1,5 +1,3 @@
-/** @jsx React.DOM */
-
 var Editor = require('./Editor');
 
 addEventListener('DOMContentLoaded', function () {

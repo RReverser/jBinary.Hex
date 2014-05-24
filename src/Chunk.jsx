@@ -1,5 +1,3 @@
-/** @jsx React.DOM */
-
 var ChunkItem = require('./ChunkItem');
 
 module.exports = React.createClass({
