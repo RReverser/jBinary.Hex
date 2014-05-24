@@ -280,7 +280,7 @@
             var Tree = module.exports = React.createClass({
                     displayName: 'Tree',
                     getInitialState: function () {
-                        return { visible: this.props.alwaysVisible };
+                        return { visible: !!this.props.alwaysVisible };
                     },
                     render: function () {
                         var obj = this.props.object, isObject = typeof obj === 'object' && obj !== null, split = this.props.split, keys = [], childNodes = [];

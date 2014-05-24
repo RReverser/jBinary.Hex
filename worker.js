@@ -12,9 +12,10 @@
         return module.exports;
     }
     _require.cache = [];
-    _require.modules = [function (module, exports) {
-            importScripts('//s3.amazonaws.com/es6-promises/promise-1.0.0.min.js', '//jdataview.github.io/dist/jdataview.js', '//jdataview.github.io/dist/jbinary.js');
-            var msgHandlers = {};
+    _require.modules = [
+        function (module, exports) {
+            importScripts('//s3.amazonaws.com/es6-promises/promise-1.0.0.min.js');
+            var msgHandlers = _require(1);
             addEventListener('message', function (event) {
                 var message = event.data;
                 Promise.resolve(message.data).then(msgHandlers[message.type]).then(function (data) {
@@ -33,14 +34,17 @@
                     });
                 });
             });
+        },
+        function (module, exports) {
+            importScripts('//jdataview.github.io/dist/jdataview.js', '//jdataview.github.io/dist/jbinary.js');
             var whenBinary;
-            msgHandlers.handleFile = function (file) {
+            exports.handleFile = function (file) {
                 whenBinary = jBinary.load(file);
                 return whenBinary.then(function (binary) {
                     return binary.read('blob');
                 });
             };
-            msgHandlers.parse = function (sourceCode) {
+            exports.parse = function (sourceCode) {
                 var module = {};
                 new Function('require', 'module', 'exports', sourceCode)(function (name) {
                     return {
@@ -52,6 +56,7 @@
                     return binary.as(module.exports).readAll();
                 });
             };
-        }];
+        }
+    ];
     _require(0);
 }());

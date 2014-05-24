@@ -11,13 +11,19 @@ module.exports = function (grunt) {
 
 		pure_cjs: {
 			options: {
-				transform: [function (file) { return reactify(file, {es6: true}) }],
-				defaultExt: 'jsx'
+				transform: [function (file) { return reactify(file, {es6: true, everything: true}) }]
 			},
-			all: {
+			main: {
+				options: {
+					defaultExt: 'jsx'
+				},
 				files: {
-					'index.js': 'src/index.jsx',
-					'worker.js': 'src/worker.jsx'
+					'index.js': 'src/index.jsx'
+				}
+			},
+			worker: {
+				files: {
+					'worker.js': 'src/worker.js'
 				}
 			}
 		}

@@ -3,7 +3,7 @@ var Tree = module.exports = React.createClass({
 
 	getInitialState: function () {
 		return {
-			visible: this.props.alwaysVisible
+			visible: !!this.props.alwaysVisible
 		};
 	},
 
