@@ -110,27 +110,29 @@ module.exports = React.createClass({
 				delta={this.props.delta}
 				lines={this.props.lines}
 				onKeyDown={this.onKeyDown} />
-			<Ace mode="ace/mode/javascript" sessionWasCreated={this.sessionWasCreated} initialCode={
-				"var jDataView = require('jdataview');\n" +
-				"var jBinary = require('jbinary');\n" +
-				"\n" +
-				"module.exports = {\n" +
-				"    'jBinary.all': 'File',\n" +
-				"\n"+
-				"    File: {\n" +
-				"        byte: 'uint8',\n" +
-				"        str: ['string', 10],\n" +
-				"        other: 'blob'\n" +
-				"    }\n" +
-				"};"
-			} />
-			<div className="tree">
-				<input type="button" onClick={this.parse} value="Refresh" style={ifStyle(data && !this.state.isParsing)} />
-				{
-					parsed
-					? <Tree title="Parsed structure" alwaysVisible={true} split={1000} object={parsed} />
-					: <h4 className="status">{this.state.status}</h4>
-				}
+			<div className="parser">
+				<Ace mode="ace/mode/javascript" sessionWasCreated={this.sessionWasCreated} initialCode={
+					"var jDataView = require('jdataview');\n" +
+					"var jBinary = require('jbinary');\n" +
+					"\n" +
+					"module.exports = {\n" +
+					"    'jBinary.all': 'File',\n" +
+					"\n"+
+					"    File: {\n" +
+					"        byte: 'uint8',\n" +
+					"        str: ['string', 10],\n" +
+					"        other: 'blob'\n" +
+					"    }\n" +
+					"};"
+				} />
+				<div className="tree">
+					<input type="button" onClick={this.parse} value="Refresh" style={ifStyle(data && !this.state.isParsing)} />
+					{
+						parsed
+						? <Tree title="Parsed structure" alwaysVisible={true} split={1000} object={parsed} />
+						: <h4 className="status">{this.state.status}</h4>
+					}
+				</div>
 			</div>
 		</div>;
 	}

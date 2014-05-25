@@ -146,7 +146,7 @@
                     return React.DOM.div({
                         className: 'binary-wrapper',
                         tabIndex: 0,
-                        style: { height: this.props.lines * HEIGHT },
+                        style: { minHeight: this.props.lines * HEIGHT },
                         scrollTop: this.state.start * HEIGHT,
                         onKeyDown: this.onKeyDown,
                         onScroll: this.onScroll
@@ -292,7 +292,7 @@
                         delta: this.props.delta,
                         lines: this.props.lines,
                         onKeyDown: this.onKeyDown
-                    }), Ace({
+                    }), React.DOM.div({ className: 'parser' }, Ace({
                         mode: 'ace/mode/javascript',
                         sessionWasCreated: this.sessionWasCreated,
                         initialCode: 'var jDataView = require(\'jdataview\');\n' + 'var jBinary = require(\'jbinary\');\n' + '\n' + 'module.exports = {\n' + '    \'jBinary.all\': \'File\',\n' + '\n' + '    File: {\n' + '        byte: \'uint8\',\n' + '        str: [\'string\', 10],\n' + '        other: \'blob\'\n' + '    }\n' + '};'
@@ -306,7 +306,7 @@
                         alwaysVisible: true,
                         split: 1000,
                         object: parsed
-                    }) : React.DOM.h4({ className: 'status' }, this.state.status)));
+                    }) : React.DOM.h4({ className: 'status' }, this.state.status))));
                 }
             });
         },

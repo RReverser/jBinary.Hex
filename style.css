@@ -1,12 +1,27 @@
+html, body {
+	padding: 0;
+	margin: 0;
+	width: 100%;
+	height: 100%;
+}
+
 body {
 	margin: 0;
 }
 
-.toolbar {
+.editor {
+	display: flex;
+	position: absolute;
+	min-width: 745px;
+	min-height: 720px;
 	width: 100%;
-	height: 20pt;
+	height: 100%;
+	flex-direction: column;
+}
+
+.toolbar {
+	min-height: 20pt;
 	background: #fff;
-	z-index: 1;
 	border-bottom: 1px solid #777;
 }
 
@@ -17,10 +32,9 @@ body {
 .binary-wrapper {
 	font-family: Courier, monospace;
 	font-size: 13px;
-	width: 100%;
 	position: relative;
-	background-color: #ccc;
 	border-bottom: 1px solid #777;
+	background: #ccc;
 }
 
 .binary {
@@ -55,7 +69,7 @@ body {
 .binary .hexgroup {
 	border-left: 1px solid #777;
 	border-right: 1px solid #777;
-	width: 640px;
+	min-width: 640px;
 }
 
 .binary .value {
@@ -85,29 +99,32 @@ body {
 
 .binary .chargroup {
 	white-space: pre;
-	width: 320px;
+	min-width: 320px;
+	border-right: 1px solid #777;
+}
+
+.parser {
+	flex: auto;
+	display: flex;
+	flex-direction: row;
 }
 
 .ace-editor, .tree {
-	width: 50%;
-	height: 300px;
-	float: left;
 	overflow-y: auto;
 	border-bottom: 1px solid #777;
 	box-sizing: border-box;
 }
 
-.tree {
-	padding-left: 4pt;
-	word-wrap: break-word;
-}
-
 .ace-editor {
 	border-right: 1px solid #777;
+	flex: auto;
 }
 
 .tree {
+	width: 40%;
 	font-family: "Helvetica Neue";
+	padding-left: 4pt;
+	word-wrap: break-word;
 }
 
 .tree .status {

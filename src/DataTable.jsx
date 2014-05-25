@@ -80,7 +80,7 @@ module.exports = React.createClass({
 			}
 		}
 
-		return <div className="binary-wrapper" tabIndex={0} style={{height: this.props.lines * HEIGHT}} scrollTop={this.state.start * HEIGHT} onKeyDown={this.onKeyDown} onScroll={this.onScroll}>
+		return <div className="binary-wrapper" tabIndex={0} style={{minHeight: this.props.lines * HEIGHT}} scrollTop={this.state.start * HEIGHT} onKeyDown={this.onKeyDown} onScroll={this.onScroll}>
 			<div className="scrollable-wrapper"><div style={{height: totalLines * HEIGHT}} /></div>
 			<table className="binary">
 				<tbody>{rows}</tbody>
