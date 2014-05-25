@@ -292,7 +292,7 @@
                     }), Ace({
                         mode: 'ace/mode/javascript',
                         sessionWasCreated: this.sessionWasCreated,
-                        initialCode: 'var jDataView = require(\'jdataview\');\n' + 'var jBinary = require(\'jbinary\');\n' + '\n' + 'module.exports = {\n' + '    \'jBinary.all\': \'File\',\n' + '\n' + '    File: {\n' + '        byte: \'uint8\',\n' + '        str: [\'string\', 10],\n' + '        other: [\'array\', \'uint8\']\n' + '    }\n' + '};'
+                        initialCode: 'var jDataView = require(\'jdataview\');\n' + 'var jBinary = require(\'jbinary\');\n' + '\n' + 'module.exports = {\n' + '    \'jBinary.all\': \'File\',\n' + '\n' + '    File: {\n' + '        byte: \'uint8\',\n' + '        str: [\'string\', 10],\n' + '        other: \'blob\'\n' + '    }\n' + '};'
                     }), React.DOM.div({ className: 'tree' }, React.DOM.input({
                         type: 'button',
                         onClick: this.parse,
@@ -319,8 +319,8 @@
                         if (isObject) {
                             keys = this.props.keys || Object.keys(obj);
                             if (this.state.visible) {
-                                var step = Math.pow(10, Math.ceil(Math.log(Math.ceil(keys.length / (split * split)) * split) / Math.LN10));
-                                if (keys.length > step) {
+                                if (keys.length > split) {
+                                    var step = Math.pow(10, Math.ceil(Math.log(Math.max(keys.length / split, split)) / Math.LN10));
                                     for (var i = 0, nextI, title; i < keys.length; i = nextI) {
                                         nextI = Math.min(i + step, keys.length);
                                         title = keys[i] + '..' + keys[nextI - 1];

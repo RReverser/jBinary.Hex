@@ -120,7 +120,7 @@ module.exports = React.createClass({
 				"    File: {\n" +
 				"        byte: 'uint8',\n" +
 				"        str: ['string', 10],\n" +
-				"        other: ['array', 'uint8']\n" +
+				"        other: 'blob'\n" +
 				"    }\n" +
 				"};"
 			} />
