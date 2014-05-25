@@ -50,6 +50,9 @@
             module.exports = React.createClass({
                 displayName: 'Chunk',
                 shouldComponentUpdate: function (props) {
+                    if (props.data !== this.props.data) {
+                        return true;
+                    }
                     var oldPos = this.props.position, newPos = props.position, start = props.offset, end = start + this.props.delta;
                     return oldPos >= start && oldPos < end || newPos >= start && newPos < end;
                 },
