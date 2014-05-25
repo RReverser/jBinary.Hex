@@ -301,7 +301,7 @@
                     }), parsed ? Tree({
                         title: 'Parsed structure',
                         alwaysVisible: true,
-                        split: 100,
+                        split: 1000,
                         object: parsed
                     }) : React.DOM.h4({ className: 'status' }, this.state.status)));
                 }
@@ -312,7 +312,10 @@
             var Tree = module.exports = React.createClass({
                     displayName: 'Tree',
                     getInitialState: function () {
-                        return { visible: !!this.props.alwaysVisible };
+                        return {
+                            visible: !!this.props.alwaysVisible,
+                            childNodes: []
+                        };
                     },
                     render: function () {
                         var obj = this.props.object, isObject = typeof obj === 'object' && obj !== null, split = this.props.split, keys = [], childNodes = [];
@@ -326,7 +329,6 @@
                                         title = keys[i] + '..' + keys[nextI - 1];
                                         childNodes.push(React.DOM.li({ key: title }, Tree({
                                             title: title,
-                                            visible: false,
                                             split: split,
                                             keys: keys.slice(i, nextI),
                                             object: obj
@@ -337,7 +339,6 @@
                                         var key = keys[i];
                                         childNodes.push(React.DOM.li({ key: key }, Tree({
                                             title: key,
-                                            visible: false,
                                             split: split,
                                             object: obj[key]
                                         })));
@@ -345,10 +346,11 @@
                                 }
                             }
                         }
-                        return React.DOM.div({ className: 'tree-node' }, React.DOM.h5({
+                        var text = this.props.title + ': ' + (isObject ? obj.constructor.name + (typeof obj.length === 'number' ? '[' + (isObject ? keys : obj).length + ']' : '') : JSON.stringify(obj));
+                        return !isObject ? React.DOM.h5(null, text) : React.DOM.div({ className: 'tree-node' }, React.DOM.h5({
                             onClick: !this.props.alwaysVisible && this.toggle,
-                            className: !this.props.alwaysVisible && keys.length ? 'togglable togglable-' + (this.state.visible ? 'down' : 'up') : ''
-                        }, this.props.title, ': ', isObject ? obj.constructor.name : typeof obj, obj && typeof obj.length === 'number' ? '[' + (isObject ? keys : obj).length + ']' : '', !isObject ? ' = ' + JSON.stringify(obj) : ''), React.DOM.ul({ style: ifStyle(this.state.visible) }, childNodes));
+                            className: this.props.alwaysVisible || !keys.length ? 'togglable-down' : 'togglable togglable-' + (this.state.visible ? 'down' : 'up')
+                        }, text), React.DOM.ul({ style: ifStyle(this.state.visible) }, childNodes));
                     },
                     toggle: function () {
                         this.setState({ visible: !this.state.visible });

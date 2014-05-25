@@ -128,7 +128,7 @@ module.exports = React.createClass({
 				<input type="button" onClick={this.parse} value="Refresh" style={ifStyle(data && !this.state.isParsing)} />
 				{
 					parsed
-					? <Tree title="Parsed structure" alwaysVisible={true} split={100} object={parsed} />
+					? <Tree title="Parsed structure" alwaysVisible={true} split={1000} object={parsed} />
 					: <h4 className="status">{this.state.status}</h4>
 				}
 			</div>
