@@ -101,7 +101,7 @@
                     });
                 },
                 componentWillReceiveProps: function (props) {
-                    if (!props.data) {
+                    if (!props.data || props.position === this.props.position) {
                         return;
                     }
                     var delta = props.delta, line = Math.floor(props.position / delta), start = this.state.start, totalLines = Math.ceil(props.data.length / delta), end = Math.min(start + props.lines, totalLines);
@@ -147,10 +147,7 @@
                         scrollTop: this.state.start * HEIGHT,
                         onKeyDown: this.onKeyDown,
                         onScroll: this.onScroll
-                    }, React.DOM.div({ className: 'scrollable-wrapper' }, React.DOM.div({ style: { height: totalLines * HEIGHT } })), React.DOM.table({
-                        className: 'binary',
-                        cols: delta
-                    }, React.DOM.tbody(null, rows)));
+                    }, React.DOM.div({ className: 'scrollable-wrapper' }, React.DOM.div({ style: { height: totalLines * HEIGHT } })), React.DOM.table({ className: 'binary' }, React.DOM.tbody(null, rows)));
                 },
                 handleItemClick: function (event) {
                     this.props.setPosition(event.target.dataset.offset);
@@ -242,8 +239,10 @@
                             data: data,
                             position: 0
                         });
+                        this.parse();
+                    }.bind(this), function (error) {
+                        this.setState({ status: error.message });
                     }.bind(this));
-                    this.parse();
                 },
                 sessionWasCreated: function (session) {
                     this.session = session;
@@ -266,7 +265,7 @@
                         });
                     }.bind(this), function (error) {
                         this.setState({
-                            status: String(error),
+                            status: error.message,
                             isParsing: false
                         });
                     }.bind(this));
@@ -304,7 +303,7 @@
                         alwaysVisible: true,
                         split: 100,
                         object: parsed
-                    }) : React.DOM.h4({ style: { textAlign: 'center' } }, this.state.status)));
+                    }) : React.DOM.h4({ className: 'status' }, this.state.status)));
                 }
             });
         },
@@ -360,6 +359,11 @@
             var worker = new Worker('worker.js'), autoIncrement = 0;
             module.exports = function (type, data) {
                 var id = autoIncrement++;
+                worker.postMessage({
+                    id: id,
+                    type: type,
+                    data: data
+                });
                 return new Promise(function (resolve, reject) {
                     worker.addEventListener('message', function handler(event) {
                         var message = event.data;
@@ -374,11 +378,6 @@
                                 reject(error);
                             }
                         }
-                    });
-                    worker.postMessage({
-                        id: id,
-                        type: type,
-                        data: data
                     });
                 });
             };

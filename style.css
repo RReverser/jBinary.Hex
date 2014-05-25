@@ -110,6 +110,11 @@ body {
 	font-family: "Helvetica Neue";
 }
 
+.tree .status {
+	text-align: center;
+	white-space: pre-line;
+}
+
 .tree h5 {
 	margin-top: 0.5em;
 	margin-bottom: 0.5em;

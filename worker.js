@@ -28,7 +28,7 @@
                         id: message.id,
                         error: {
                             name: error.name,
-                            message: JSON.stringify(error.message),
+                            message: error.message,
                             stack: error.stack
                         }
                     });

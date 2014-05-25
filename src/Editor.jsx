@@ -38,14 +38,21 @@ module.exports = React.createClass({
 			return;
 		}
 
-		bg('handleFile', file).then(data => {
-			this.setState({
-				data: data,
-				position: 0
-			});
-		});
+		bg('handleFile', file).then(
+			data => {
+				this.setState({
+					data: data,
+					position: 0
+				});
 
-		this.parse();
+				this.parse();
+			},
+			error => {
+				this.setState({
+					status: error.message
+				});
+			}
+		);
 	},
 
 	sessionWasCreated: function (session) {
@@ -74,7 +81,7 @@ module.exports = React.createClass({
 			},
 			error => {
 				this.setState({
-					status: String(error),
+					status: error.message,
 					isParsing: false
 				});
 			}
@@ -122,7 +129,7 @@ module.exports = React.createClass({
 				{
 					parsed
 					? <Tree title="Parsed structure" alwaysVisible={true} split={100} object={parsed} />
-					: <h4 style={{textAlign: 'center'}}>{this.state.status}</h4>
+					: <h4 className="status">{this.state.status}</h4>
 				}
 			</div>
 		</div>;

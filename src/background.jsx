@@ -4,6 +4,12 @@ var worker = new Worker('worker.js'),
 module.exports = (type, data) => {
 	var id = autoIncrement++;
 
+	worker.postMessage({
+		id: id,
+		type: type,
+		data: data
+	});
+
 	return new Promise((resolve, reject) => {
 		worker.addEventListener('message', function handler(event) {
 			var message = event.data;
@@ -20,12 +26,6 @@ module.exports = (type, data) => {
 					reject(error);
 				}
 			}
-		});
-
-		worker.postMessage({
-			id: id,
-			type: type,
-			data: data
 		});
 	});
 };
